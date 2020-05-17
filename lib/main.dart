@@ -54,6 +54,7 @@ class DeparturePage extends StatefulWidget {
   // always marked "final".
 
   final String title;
+
   @override
   _DeparturePageState createState() => _DeparturePageState();
 }
@@ -86,34 +87,43 @@ class _DeparturePageState extends State<DeparturePage> {
     if (departures != null && departures.services.isNotEmpty) {
       return ListView(
         children: <Widget>[
-          for (var item in departures.services)
-            new ListTile(
-              leading: Text(item.locationDetail.gbttBookedDeparture),
-              title: Text(item.locationDetail.destination[0].description, style: TextStyle(
-                fontWeight: FontWeight.bold,
-              )),
-              subtitle: Text(item.atocName + ', Platform Pending'),
-              trailing: Text(item.locationDetail.platform,
-                  textAlign: TextAlign.center,
-                  style: item.locationDetail.platformConfirmed ? TextStyle(
-                    fontSize: 40.0, fontWeight: FontWeight.bold
-                  ) : TextStyle(
-                    fontSize: 40.0,
-                  )),
-            ),
-          new Container(
-            color: Colors.lightGreenAccent,
-            child: ListTile(
-              leading: Text('1046'),
-              trailing: Text('5', style: TextStyle(fontSize: 40.0)),
-              title: Text('Crewe'),
-              subtitle: Text('London Northwestern Railway, Platform Confirmed'),
-            ),
-          ),
+          for (var item in departures.services) getDepartureTile(item),
         ],
       );
     } else
       return null;
+  }
+
+  Container getDepartureTile(Services item) {
+    if (item.locationDetail.platformConfirmed) {
+      return new Container(
+          color: Colors.lightGreenAccent,
+          child: ListTile(
+            leading: Text(item.locationDetail.gbttBookedDeparture),
+            title: Text(item.locationDetail.destination[0].description,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                )),
+            subtitle: Text(item.atocName + ', Platform Confirmed'),
+            trailing: Text(item.locationDetail.platform,
+                textAlign: TextAlign.center,
+                style: item.locationDetail.platformConfirmed
+                    ? TextStyle(fontSize: 40.0, fontWeight: FontWeight.bold)
+                    : TextStyle(
+                        fontSize: 40.0,
+                      )),
+          ));
+    } else {
+      return new Container(
+          child: ListTile(
+            leading: Text(item.locationDetail.gbttBookedDeparture),
+            title: Text(item.locationDetail.destination[0].description,
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                )),
+            subtitle: Text(item.atocName + ', Platform Pending'),
+          ));
+    }
   }
 
   @override
