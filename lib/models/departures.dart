@@ -34,7 +34,7 @@ class Departures {
 class Location {
   String name;
   String crs;
-  String tiploc;
+  var tiploc;
 
   Location({this.name, this.crs, this.tiploc});
 
