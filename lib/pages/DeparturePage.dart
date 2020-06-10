@@ -6,8 +6,8 @@ import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
 import 'package:platforms_app_flutter/models/departures.dart';
+import 'package:platforms_app_flutter/pages/ServiceDetailPage.dart';
 import 'package:progress_dialog/progress_dialog.dart';
-import 'package:rflutter_alert/rflutter_alert.dart';
 
 class DeparturePage extends StatefulWidget {
   DeparturePage({Key key, this.title}) : super(key: key);
@@ -148,8 +148,9 @@ class _DeparturePageState extends State<DeparturePage> {
         children: <Widget>[
           new TimePickerSpinner(
             is24HourMode: true,
-            normalTextStyle: TextStyle(fontSize: 24, color: Colors.grey),
-            highlightedTextStyle: TextStyle(fontSize: 24, color: Colors.black),
+            normalTextStyle: TextStyle(fontSize: 24),
+            highlightedTextStyle:
+                TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             spacing: 50,
             itemHeight: 80,
             isForce2Digits: true,
@@ -158,13 +159,29 @@ class _DeparturePageState extends State<DeparturePage> {
             },
           ),
           new FlatButton(
-              child: const Text('Reset to now',
-                  style: TextStyle(fontSize: 20, color: Colors.black)),
+              child: const Text('Reset to now', style: TextStyle(fontSize: 20)),
               onPressed: _handleResetTime),
           new FlatButton(
-              child: const Text('Apply',
-                  style: TextStyle(fontSize: 20, color: Colors.black)),
+              child: const Text('Apply', style: TextStyle(fontSize: 20)),
               onPressed: _handleTimeChange)
+        ]);
+  }
+
+  SimpleDialog aboutDialog() {
+    return new SimpleDialog(
+        title: const Text('London Platforms', textAlign: TextAlign.center,),
+        children: <Widget>[
+          Padding(
+            padding: EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
+            child: Text('Data used with the kind permission of RealTimeTrains.'),
+          ),
+          Padding(
+            padding: EdgeInsets.only(left: 16.0, right: 16.0),
+            child: Text('Feedback appreciated! platformfeedback@icloud.com'),
+          ),
+          new FlatButton(
+              child: const Text('OK', style: TextStyle(fontSize: 20)),
+              onPressed: () {Navigator.of(context).pop();})
         ]);
   }
 
@@ -249,7 +266,14 @@ class _DeparturePageState extends State<DeparturePage> {
   ListView getDepartures(Departures departures) {
     if (departures != null && departures.services == null) {
       return ListView(
-        children: <Widget>[(Text('No services'))],
+        children: <Widget>[
+          ListTile(
+            title: Text('No services at this time',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                )),
+          )
+        ],
       );
     } else if (departures != null && departures.services.isNotEmpty) {
       return ListView(
@@ -284,6 +308,15 @@ class _DeparturePageState extends State<DeparturePage> {
                         fontWeight: FontWeight.bold,
                         color: Colors.black)
                     : TextStyle(fontSize: 40.0, color: Colors.black)),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) =>
+                      ServiceDetailPage(serviceUid: item.serviceUid),
+                ),
+              );
+            },
           ));
     } else {
       return new Container(
@@ -300,6 +333,15 @@ class _DeparturePageState extends State<DeparturePage> {
                     item.locationDetail.platform +
                     ')'
                 : '')),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  ServiceDetailPage(serviceUid: item.serviceUid),
+            ),
+          );
+        },
       ));
     }
   }
@@ -307,17 +349,27 @@ class _DeparturePageState extends State<DeparturePage> {
   Container getArrivalTile(Services item) {
     return new Container(
       child: ListTile(
-          leading: Text(item.locationDetail.destination[0].publicTime),
-          title: Text(item.locationDetail.origin[0].description,
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-              )),
-          subtitle: Text(item.atocName),
-          trailing: Text(
-            item.locationDetail.platform,
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 40.0),
-          )),
+        leading: Text(item.locationDetail.destination[0].publicTime),
+        title: Text(item.locationDetail.origin[0].description,
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+            )),
+        subtitle: Text(item.atocName),
+        trailing: Text(
+          item.locationDetail.platform,
+          textAlign: TextAlign.center,
+          style: TextStyle(fontSize: 40.0),
+        ),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  ServiceDetailPage(serviceUid: item.serviceUid),
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -380,6 +432,17 @@ class _DeparturePageState extends State<DeparturePage> {
                         return stationMenu();
                       });
                 },
+              ),
+              IconButton(
+                icon: Icon(Icons.info),
+                onPressed: () {
+                  showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return aboutDialog();
+                      });
+                },
+
               )
             ],
           ), // This trailing comma makes auto-formatting nicer for build methods.
