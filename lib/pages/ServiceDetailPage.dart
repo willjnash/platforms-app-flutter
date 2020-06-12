@@ -9,7 +9,7 @@ import 'package:http/http.dart' as http;
 
 class ServiceDetailPage extends StatefulWidget {
   final String serviceUid;
-  
+
   ServiceDetailPage({Key key, @required this.serviceUid}) : super(key: key);
 
   @override
@@ -90,7 +90,6 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
 
   ListView getDepartureList() {
     return new ListView(
-//        crossAxisAlignment: CrossAxisAlignment.start,
         children: serviceDetail.locations
             .map<Widget>((item) => item.isPublicCall &&
                     (item.origin[0].description != item.description) &&
