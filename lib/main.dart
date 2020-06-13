@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:platforms_app_flutter/pages/DeparturePage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-void main() {
+SharedPreferences sharedPreferences;
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  sharedPreferences =
+      await SharedPreferences.getInstance();
   runApp(PlatformsApp());
 }
 
@@ -17,7 +23,7 @@ class PlatformsApp extends StatelessWidget {
       darkTheme: ThemeData(
         brightness: Brightness.dark,
       ),
-      home: DeparturePage(title: 'Departures from EUS'),
+      home: DeparturePage(title: 'Departures from EUS', sharedPreferences: sharedPreferences,),
     );
   }
 }

@@ -8,19 +8,23 @@ import 'package:intl/intl.dart';
 import 'package:platforms_app_flutter/models/departures.dart';
 import 'package:platforms_app_flutter/pages/ServiceDetailPage.dart';
 import 'package:progress_dialog/progress_dialog.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class DeparturePage extends StatefulWidget {
-  DeparturePage({Key key, this.title}) : super(key: key);
+  DeparturePage({Key key, this.title, this.sharedPreferences }) : super(key: key);
   final String title;
+  final SharedPreferences sharedPreferences;
 
   @override
   _DeparturePageState createState() => _DeparturePageState();
 }
 
 class _DeparturePageState extends State<DeparturePage> {
+  SharedPreferences prefs;
   String lastUpdated = new DateFormat('HH:mm').format(DateTime.now());
-  String station = 'EUS';
-  String stationDesc = 'Euston';
+  String station;
+  String stationDesc;
   String time;
   Text title;
   var services;
@@ -169,33 +173,60 @@ class _DeparturePageState extends State<DeparturePage> {
 
   SimpleDialog aboutDialog() {
     return new SimpleDialog(
-        title: const Text('London Platforms', textAlign: TextAlign.center,),
+        title: const Text(
+          'London Platforms',
+          textAlign: TextAlign.center,
+        ),
         children: <Widget>[
           Padding(
             padding: EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
-            child: Text('Data used with the kind permission of RealTimeTrains.'),
+            child:
+                Text('Data used with the kind permission of RealTimeTrains.'),
+          ),
+          Padding(
+            padding: EdgeInsets.only(left: 16.0, right: 16.0, bottom: 16.0),
+            child: Text('Feedback appreciated! platformfeedback@icloud.com'),
           ),
           Padding(
             padding: EdgeInsets.only(left: 16.0, right: 16.0),
-            child: Text('Feedback appreciated! platformfeedback@icloud.com'),
+            child: GestureDetector(
+                child: Text("Privacy Policy",
+                    style: TextStyle(
+                        decoration: TextDecoration.underline,
+                        color: Colors.blue)),
+                onTap: () {
+                  launch(
+                      'https://platformsapp.wordpress.com/london-platforms-privacy-notice/');
+                }),
           ),
           new FlatButton(
               child: const Text('OK', style: TextStyle(fontSize: 20)),
-              onPressed: () {Navigator.of(context).pop();})
+              onPressed: () {
+                Navigator.of(context).pop();
+              })
         ]);
   }
 
   @override
-  void initState() {
+  Future<void> initState() {
     super.initState();
+    populateVariables();
     new Future.delayed(Duration.zero, () {
       _getJson();
     });
   }
 
+  void populateVariables(){
+    prefs = widget.sharedPreferences;
+    station = prefs.getString('savedStation') ?? 'EUS';
+    stationDesc = prefs.getString('savedStationDesc') ?? 'Euston';
+  }
+
   void _handleStationChange(String newStationCode, String newStationDesc) {
     station = newStationCode;
     stationDesc = newStationDesc;
+    prefs.setString('savedStation', newStationCode);
+    prefs.setString('savedStationDesc', newStationDesc);
     Navigator.of(context).pop();
     _getJson();
   }
@@ -442,7 +473,6 @@ class _DeparturePageState extends State<DeparturePage> {
                         return aboutDialog();
                       });
                 },
-
               )
             ],
           ), // This trailing comma makes auto-formatting nicer for build methods.
