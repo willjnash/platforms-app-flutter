@@ -8,3 +8,5 @@ GeneratedPluginRegistrant.java
 /key.jks
 /key.properties
 /private_key.pepk
+/legacy-key/
+/new-key/

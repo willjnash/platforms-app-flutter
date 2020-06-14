@@ -1,4 +1,4 @@
-package com.example.platforms_app_flutter
+package willnash.platformsapp
 
 import io.flutter.embedding.android.FlutterActivity
 
