@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'package:platforms_app_flutter/models/departures.dart';
+import 'package:platforms_app_flutter/models/Departures.dart';
 import 'package:platforms_app_flutter/pages/ServiceDetailPage.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,6 +29,7 @@ class _DeparturePageState extends State<DeparturePage> {
   Text title;
   var services;
   bool showingArrivals = false;
+  ProgressDialog pr;
 
   SimpleDialog stationMenu() {
     return new SimpleDialog(
@@ -211,6 +212,7 @@ class _DeparturePageState extends State<DeparturePage> {
   Future<void> initState() {
     super.initState();
     populateVariables();
+    pr = new ProgressDialog(context);
     new Future.delayed(Duration.zero, () {
       _getJson();
     });
@@ -259,7 +261,6 @@ class _DeparturePageState extends State<DeparturePage> {
   }
 
   void _getJson() async {
-    ProgressDialog pr = new ProgressDialog(context);
     await pr.show();
     var response;
     if (showingArrivals) {

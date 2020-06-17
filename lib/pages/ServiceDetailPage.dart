@@ -1,9 +1,9 @@
 import 'dart:convert';
 import 'dart:io';
+import '../utils/GlobalUtils.dart';
 
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:platforms_app_flutter/models/servicedetail.dart';
+import 'package:platforms_app_flutter/models/ServiceDetail.dart';
 import 'package:progress_dialog/progress_dialog.dart';
 import 'package:http/http.dart' as http;
 
@@ -27,14 +27,6 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
     });
   }
 
-  String _getTimeExtension() {
-    DateTime today = new DateTime.now();
-    String year = new DateFormat("yyyy").format(today);
-    String month = new DateFormat("MM").format(today);
-    String day = new DateFormat("dd").format(today);
-    return '/' + year + '/' + month + '/' + day;
-  }
-
   void _getJson() async {
     ProgressDialog pr = new ProgressDialog(context);
     await pr.show();
@@ -42,7 +34,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
     response = await http.get(
         'https://api.rtt.io/api/v1/json/service/' +
             widget.serviceUid +
-            _getTimeExtension(),
+            getTimeExtension(),
         headers: {
           HttpHeaders.authorizationHeader:
               "Basic cnR0YXBpX3duYXNoOTA6YjIxOTUyNDMyYWRlODU5OWE1NGM0NzZhYWQzNWM5N2U2MmNiOTk1ZA=="
