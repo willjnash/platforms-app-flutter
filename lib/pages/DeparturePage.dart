@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import '../utils/GlobalUtils.dart';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_time_picker_spinner/flutter_time_picker_spinner.dart';
@@ -295,7 +296,7 @@ class _DeparturePageState extends State<DeparturePage> {
     }
   }
 
-  ListView getDepartures(Departures departures) {
+  ListView _getDepartures(Departures departures) {
     if (departures != null && departures.services == null) {
       return ListView(
         children: <Widget>[
@@ -311,20 +312,20 @@ class _DeparturePageState extends State<DeparturePage> {
       return ListView(
         children: <Widget>[
           for (var item in departures.services)
-            showingArrivals ? getArrivalTile(item) : getDepartureTile(item),
+            showingArrivals ? _getArrivalTile(item) : _getDepartureTile(item),
         ],
       );
     } else
       return null;
   }
 
-  Container getDepartureTile(Services item) {
+  Container _getDepartureTile(Services item) {
     if (item.locationDetail.platformConfirmed != null &&
         item.locationDetail.platformConfirmed) {
       return new Container(
           color: Colors.lightGreenAccent,
           child: ListTile(
-            leading: Text(item.locationDetail.gbttBookedDeparture,
+            leading: Text(formatTime(item.locationDetail.gbttBookedDeparture),
                 style: TextStyle(
                     fontWeight: FontWeight.bold, color: Colors.black)),
             title: Text(item.locationDetail.destination[0].description,
@@ -345,7 +346,7 @@ class _DeparturePageState extends State<DeparturePage> {
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
-                      ServiceDetailPage(serviceUid: item.serviceUid),
+                      ServiceDetailPage(serviceUid: item.serviceUid, serviceDate: item.runDate),
                 ),
               );
             },
@@ -353,7 +354,7 @@ class _DeparturePageState extends State<DeparturePage> {
     } else {
       return new Container(
           child: ListTile(
-        leading: Text(item.locationDetail.gbttBookedDeparture,
+        leading: Text(formatTime(item.locationDetail.gbttBookedDeparture),
             style: TextStyle(fontWeight: FontWeight.bold)),
         title: Text(item.locationDetail.destination[0].description,
             style: TextStyle(
@@ -370,7 +371,7 @@ class _DeparturePageState extends State<DeparturePage> {
             context,
             MaterialPageRoute(
               builder: (context) =>
-                  ServiceDetailPage(serviceUid: item.serviceUid),
+                  ServiceDetailPage(serviceUid: item.serviceUid, serviceDate: item.runDate)
             ),
           );
         },
@@ -378,10 +379,10 @@ class _DeparturePageState extends State<DeparturePage> {
     }
   }
 
-  Container getArrivalTile(Services item) {
+  Container _getArrivalTile(Services item) {
     return new Container(
       child: ListTile(
-        leading: Text(item.locationDetail.destination[0].publicTime),
+        leading: Text(formatTime(item.locationDetail.destination[0].publicTime)),
         title: Text(item.locationDetail.origin[0].description,
             style: TextStyle(
               fontWeight: FontWeight.bold,
@@ -397,7 +398,7 @@ class _DeparturePageState extends State<DeparturePage> {
             context,
             MaterialPageRoute(
               builder: (context) =>
-                  ServiceDetailPage(serviceUid: item.serviceUid),
+                  ServiceDetailPage(serviceUid: item.serviceUid, serviceDate: item.runDate)
             ),
           );
         },
@@ -410,10 +411,10 @@ class _DeparturePageState extends State<DeparturePage> {
     title = showingArrivals
         ? Text('Arrivals into ' +
             stationDesc +
-            (time != null ? ' at ' + time : ''))
+            (time != null ? ' at ' + formatTime(time) : ''))
         : Text('Departures from ' +
             stationDesc +
-            (time != null ? ' at ' + time : ''));
+            (time != null ? ' at ' + formatTime(time) : ''));
     return Scaffold(
         appBar: AppBar(
           title: FittedBox(fit: BoxFit.fitWidth, child: title),
@@ -428,7 +429,7 @@ class _DeparturePageState extends State<DeparturePage> {
         body: Center(
           // Center is a layout widget. It takes a single child and positions it
           // in the middle of the parent.
-          child: getDepartures(services),
+          child: _getDepartures(services),
         ),
         bottomNavigationBar: BottomAppBar(
           child: new Row(

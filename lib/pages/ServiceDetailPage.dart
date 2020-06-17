@@ -9,8 +9,9 @@ import 'package:http/http.dart' as http;
 
 class ServiceDetailPage extends StatefulWidget {
   final String serviceUid;
+  final String serviceDate;
 
-  ServiceDetailPage({Key key, @required this.serviceUid}) : super(key: key);
+  ServiceDetailPage({Key key, @required this.serviceUid, @required this.serviceDate}) : super(key: key);
 
   @override
   _ServiceDetailPageState createState() => _ServiceDetailPageState();
@@ -34,7 +35,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
     response = await http.get(
         'https://api.rtt.io/api/v1/json/service/' +
             widget.serviceUid +
-            getTimeExtension(),
+            getDateExtension(widget.serviceDate),
         headers: {
           HttpHeaders.authorizationHeader:
               "Basic cnR0YXBpX3duYXNoOTA6YjIxOTUyNDMyYWRlODU5OWE1NGM0NzZhYWQzNWM5N2U2MmNiOTk1ZA=="
@@ -65,7 +66,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
           FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(
-                  serviceDetail.origin[0].publicTime +
+                  formatTime(serviceDetail.origin[0].publicTime) +
                       ' to ' +
                       serviceDetail.destination[0].description,
                   style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold))),
@@ -89,7 +90,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
                 ? new Text(
                     item.description +
                         ' (' +
-                        item.gbttBookedArrival +
+                        formatTime(item.gbttBookedArrival) +
                         ')' +
                         (item.destination[0].description != item.description
                             ? ', '
