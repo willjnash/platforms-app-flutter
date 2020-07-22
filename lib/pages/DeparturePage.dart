@@ -245,16 +245,7 @@ class _DeparturePageState extends State<DeparturePage> {
     _getJson();
   }
 
-  String _getTimeExtension() {
-    if (time != null) {
-      DateTime today = new DateTime.now();
-      String year = new DateFormat("yyyy").format(today);
-      String month = new DateFormat("MM").format(today);
-      String day = new DateFormat("dd").format(today);
-      return '/' + year + '/' + month + '/' + day + '/' + time;
-    } else
-      return '';
-  }
+
 
   void _toggleDeparturesOrArrivals() {
     showingArrivals = !showingArrivals;
@@ -268,7 +259,7 @@ class _DeparturePageState extends State<DeparturePage> {
       response = await http.get(
           'https://api.rtt.io/api/v1/json/search/' +
               station +
-              _getTimeExtension() +
+              getTimeExtension(time) +
               '/arrivals',
           headers: {
             HttpHeaders.authorizationHeader:
@@ -278,7 +269,7 @@ class _DeparturePageState extends State<DeparturePage> {
       response = await http.get(
           'https://api.rtt.io/api/v1/json/search/' +
               station +
-              _getTimeExtension(),
+              getTimeExtension(time),
           headers: {
             HttpHeaders.authorizationHeader:
                 "Basic cnR0YXBpX3duYXNoOTA6YjIxOTUyNDMyYWRlODU5OWE1NGM0NzZhYWQzNWM5N2U2MmNiOTk1ZA=="
