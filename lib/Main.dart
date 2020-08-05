@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_config/flutter_config.dart';
 import 'package:platforms_app_flutter/pages/DeparturePage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -8,6 +9,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   sharedPreferences =
       await SharedPreferences.getInstance();
+  await FlutterConfig.loadEnvVariables();
   runApp(PlatformsApp());
 }
 

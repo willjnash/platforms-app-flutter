@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter_config/flutter_config.dart';
+
 import '../utils/GlobalUtils.dart';
 
 import 'package:flutter/material.dart';
@@ -245,8 +247,6 @@ class _DeparturePageState extends State<DeparturePage> {
     _getJson();
   }
 
-
-
   void _toggleDeparturesOrArrivals() {
     showingArrivals = !showingArrivals;
     _getJson();
@@ -255,6 +255,7 @@ class _DeparturePageState extends State<DeparturePage> {
   void _getJson() async {
     await pr.show();
     var response;
+    final basicAuthString = FlutterConfig.get('API_KEY');
     if (showingArrivals) {
       response = await http.get(
           'https://api.rtt.io/api/v1/json/search/' +
@@ -263,7 +264,7 @@ class _DeparturePageState extends State<DeparturePage> {
               '/arrivals',
           headers: {
             HttpHeaders.authorizationHeader:
-                "Basic cnR0YXBpX3duYXNoOTA6YjIxOTUyNDMyYWRlODU5OWE1NGM0NzZhYWQzNWM5N2U2MmNiOTk1ZA=="
+            basicAuthString
           });
     } else {
       response = await http.get(
@@ -272,7 +273,7 @@ class _DeparturePageState extends State<DeparturePage> {
               getTimeExtension(time),
           headers: {
             HttpHeaders.authorizationHeader:
-                "Basic cnR0YXBpX3duYXNoOTA6YjIxOTUyNDMyYWRlODU5OWE1NGM0NzZhYWQzNWM5N2U2MmNiOTk1ZA=="
+            basicAuthString
           });
     }
     if (response.statusCode == 200) {

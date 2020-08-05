@@ -1,5 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
+import 'package:flutter_config/flutter_config.dart';
+
 import '../utils/GlobalUtils.dart';
 
 import 'package:flutter/material.dart';
@@ -38,7 +40,7 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
             getDateExtension(widget.serviceDate),
         headers: {
           HttpHeaders.authorizationHeader:
-              "Basic cnR0YXBpX3duYXNoOTA6YjIxOTUyNDMyYWRlODU5OWE1NGM0NzZhYWQzNWM5N2U2MmNiOTk1ZA=="
+          FlutterConfig.get('API_KEY')
         });
     if (response.statusCode == 200) {
       setState(() {
