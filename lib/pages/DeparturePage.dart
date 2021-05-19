@@ -255,22 +255,22 @@ class _DeparturePageState extends State<DeparturePage> {
   void _getJson() async {
     await pr.show();
     var response;
-    final basicAuthString = FlutterConfig.get('API_KEY');
+    final basicAuthString = 'Basic cnR0YXBpX3duYXNoOTA6YjIxOTUyNDMyYWRlODU5OWE1NGM0NzZhYWQzNWM5N2U2MmNiOTk1ZA==';
     if (showingArrivals) {
-      response = await http.get(
+      response = await http.get(Uri.parse(
           'https://api.rtt.io/api/v1/json/search/' +
               station +
               getTimeExtension(time) +
-              '/arrivals',
+              '/arrivals'),
           headers: {
             HttpHeaders.authorizationHeader:
             basicAuthString
           });
     } else {
-      response = await http.get(
+      response = await http.get(Uri.parse(
           'https://api.rtt.io/api/v1/json/search/' +
               station +
-              getTimeExtension(time),
+              getTimeExtension(time)),
           headers: {
             HttpHeaders.authorizationHeader:
             basicAuthString

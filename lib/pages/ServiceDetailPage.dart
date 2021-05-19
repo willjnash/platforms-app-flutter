@@ -34,13 +34,13 @@ class _ServiceDetailPageState extends State<ServiceDetailPage> {
     ProgressDialog pr = new ProgressDialog(context);
     await pr.show();
     var response;
-    response = await http.get(
-        'https://api.rtt.io/api/v1/json/service/' +
-            widget.serviceUid +
-            getDateExtension(widget.serviceDate),
+    response = await http.get(Uri.parse('https://api.rtt.io/api/v1/json/service/' +
+        widget.serviceUid +
+        getDateExtension(widget.serviceDate))
+        ,
         headers: {
           HttpHeaders.authorizationHeader:
-          FlutterConfig.get('API_KEY')
+          'Basic cnR0YXBpX3duYXNoOTA6YjIxOTUyNDMyYWRlODU5OWE1NGM0NzZhYWQzNWM5N2U2MmNiOTk1ZA=='
         });
     if (response.statusCode == 200) {
       setState(() {
