@@ -1,16 +1,27 @@
-# platforms_app_flutter
+# London Platforms
 
-Platforms App rewritten to use the Flutter framework.
+Monorepo for **London Platforms** train departure and platform information clients. Shared behaviour and API contracts are defined in [docs/SERVICE_SPEC.md](docs/SERVICE_SPEC.md).
 
-## Getting Started
+## Apps
 
-This project is a starting point for a Flutter application.
+| Path | Description |
+|------|-------------|
+| [apps/flutter-deprecated/](apps/flutter-deprecated/) | Legacy **Flutter** app (deprecated). Run Flutter commands from this directory. |
+| [apps/ios/](apps/ios/) | Native **iOS** app (SwiftUI). Add the Xcode project here when implemented. |
+| [apps/android/](apps/android/) | Native **Android** app (placeholder for a future Kotlin implementation). |
 
-A few resources to get you started if this is your first Flutter project:
+## Documentation
 
-- [Lab: Write your first Flutter app](https://flutter.dev/docs/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://flutter.dev/docs/cookbook)
+- [docs/SERVICE_SPEC.md](docs/SERVICE_SPEC.md) — language-agnostic product and RealTime Trains integration spec.
 
-For help getting started with Flutter, view our
-[online documentation](https://flutter.dev/docs), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Repository layout
+
+```
+docs/                      # Shared specifications
+apps/
+  flutter-deprecated/      # pubspec.yaml, lib/, test/, Flutter android/ & ios/
+  ios/                     # Native iOS (SwiftUI)
+  android/                 # Native Android (future)
+```
+
+Renaming the remote repository (for example away from `platforms-app-flutter`) is optional; update your `git remote` after the host rename.

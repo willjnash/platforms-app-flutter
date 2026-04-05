@@ -1,0 +1,12 @@
+# IDE
+.idea/
+
+# macOS
+.DS_Store
+
+# Xcode (user state)
+**/xcuserdata/
+*.xcuserstate
+
+# Local RTT API credentials for native iOS builds (commit only *.example templates)
+apps/ios/**/Secrets.xcconfig
