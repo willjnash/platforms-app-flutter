@@ -10,3 +10,4 @@
 
 # Local RTT API credentials for native iOS builds (commit only *.example templates)
 apps/ios/**/Secrets.xcconfig
+apps/ios/LocalSecrets.xcconfig

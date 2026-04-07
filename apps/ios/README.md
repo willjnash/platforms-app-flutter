@@ -1,5 +1,42 @@
-# Native iOS (planned)
+# London Platforms (native iOS)
 
-This directory is reserved for the **native SwiftUI** iOS app implementing [docs/SERVICE_SPEC.md](../../docs/SERVICE_SPEC.md).
+SwiftUI app implementing [docs/SERVICE_SPEC.md](../../docs/SERVICE_SPEC.md). Behaviour matches the legacy [apps/flutter-deprecated](../flutter-deprecated/) client (departures/arrivals list, time filter, station catalogue, service detail, about copy).
 
-The legacy Flutter iOS embed lives under [apps/flutter-deprecated/ios](../flutter-deprecated/ios/) until the Xcode project is added here.
+## Requirements
+
+- **Xcode 26+** and **iOS 26** minimum deployment (Liquid Glass APIs such as `glassEffect` / `GlassEffectContainer`).
+- RealTime Trains API credentials (HTTP Basic), supplied at build time — see below.
+
+## Product / HIG notes
+
+- **NavigationSplitView** — board in the leading column; service detail in the trailing column on iPad (stacks on compact widths).
+- **String Catalog** — user-facing copy lives in [LondonPlatforms/Localizable.xcstrings](LondonPlatforms/Localizable.xcstrings); add locales there.
+- **Privacy manifest** — [LondonPlatforms/PrivacyInfo.xcprivacy](LondonPlatforms/PrivacyInfo.xcprivacy) (no tracking; no collected-data types declared).
+- **HIG audit checklist** — [HIG_CHECKLIST.md](HIG_CHECKLIST.md) (living checklist; App **icon** assets are still TODO separately).
+
+## RealTime Trains credentials
+
+Per the service spec, avoid shipping long-lived API keys in the binary when possible. For local development this project uses an optional **gitignored** xcconfig:
+
+1. Copy `LocalSecrets.xcconfig.example` to `apps/ios/LocalSecrets.xcconfig`.
+2. Set `RTT_BASIC_AUTH_HEADER` to the full `Authorization` header value (including the `Basic ` prefix), same shape as the Flutter app’s `Authorization` header.
+3. `Base.xcconfig` includes `LocalSecrets.xcconfig` when present; the value is injected into `LondonPlatforms/Info.plist` as `RTTBasicAuthHeader`.
+
+If credentials are missing, the app builds and runs but API requests surface a clear configuration error.
+
+## Open and run
+
+```bash
+open /path/to/repo/apps/ios/LondonPlatforms.xcodeproj
+```
+
+Select the **LondonPlatforms** scheme and an **iOS 26** simulator or device, then Run.
+
+## Command-line build
+
+```bash
+cd apps/ios
+xcodebuild -scheme LondonPlatforms -destination 'platform=iOS Simulator,name=iPhone 17' -configuration Debug build
+```
+
+Adjust the simulator name to match your installed runtimes (`xcrun simctl list devices available`).

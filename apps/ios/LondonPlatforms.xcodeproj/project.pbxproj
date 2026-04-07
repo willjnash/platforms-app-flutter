@@ -1,0 +1,556 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		LPB001 /* LondonPlatformsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF001 /* LondonPlatformsApp.swift */; };
+		LPB002 /* BoardListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF002 /* BoardListView.swift */; };
+		LPB003 /* ServiceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF003 /* ServiceDetailView.swift */; };
+		LPB004 /* AboutSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF004 /* AboutSheet.swift */; };
+		LPB005 /* StationPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF005 /* StationPickerSheet.swift */; };
+		LPB006 /* TimeFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF006 /* TimeFilterSheet.swift */; };
+		LPB007 /* StationCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF007 /* StationCatalog.swift */; };
+		LPB008 /* AppSettings.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF008 /* AppSettings.swift */; };
+		LPB009 /* RTTModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF009 /* RTTModels.swift */; };
+		LPB010 /* RTTClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF010 /* RTTClient.swift */; };
+		LPB011 /* TimeFormatting.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF011 /* TimeFormatting.swift */; };
+		LPB012 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = LPF013 /* Assets.xcassets */; };
+		LPB013 /* BoardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF016 /* BoardViewModel.swift */; };
+		LPB014 /* ServiceRows.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF017 /* ServiceRows.swift */; };
+		LPB015 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF018 /* RootView.swift */; };
+		LPB016 /* L10n.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF019 /* L10n.swift */; };
+		LPB017 /* Feedback.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF020 /* Feedback.swift */; };
+		LPB018 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = LPF021 /* Localizable.xcstrings */; };
+		LPB019 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = LPF022 /* PrivacyInfo.xcprivacy */; };
+		LPB020 /* BoardListCompactView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF023 /* BoardListCompactView.swift */; };
+		LPB021 /* TimeUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF024 /* TimeUtils.swift */; };
+		LPB022 /* TrackedServiceModels.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF025 /* TrackedServiceModels.swift */; };
+		LPB023 /* TrackedServiceManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF026 /* TrackedServiceManager.swift */; };
+		LPB024 /* BackgroundRefresh.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF027 /* BackgroundRefresh.swift */; };
+		LPB100 /* LondonPlatformsLiveActivityWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF100 /* LondonPlatformsLiveActivityWidget.swift */; };
+		LPB106 /* RefreshNowIntent.swift in Sources (Widget) */ = {isa = PBXBuildFile; fileRef = LPF102 /* RefreshNowIntent.swift */; };
+		LPB101 /* TrackedServiceModels.swift in Sources (Widget) */ = {isa = PBXBuildFile; fileRef = LPF025 /* TrackedServiceModels.swift */; };
+		LPB102 /* TimeFormatting.swift in Sources (Widget) */ = {isa = PBXBuildFile; fileRef = LPF011 /* TimeFormatting.swift */; };
+		LPB103 /* Localizable.xcstrings in Resources (Widget) */ = {isa = PBXBuildFile; fileRef = LPF021 /* Localizable.xcstrings */; };
+		LPB105 /* LondonPlatformsLiveActivity.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = LPF200 /* LondonPlatformsLiveActivity.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		LPBEP1 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				LPB105 /* LondonPlatformsLiveActivity.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		LPF001 /* LondonPlatformsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LondonPlatformsApp.swift; sourceTree = "<group>"; };
+		LPF002 /* BoardListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardListView.swift; sourceTree = "<group>"; };
+		LPF003 /* ServiceDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceDetailView.swift; sourceTree = "<group>"; };
+		LPF004 /* AboutSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutSheet.swift; sourceTree = "<group>"; };
+		LPF005 /* StationPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPickerSheet.swift; sourceTree = "<group>"; };
+		LPF006 /* TimeFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeFilterSheet.swift; sourceTree = "<group>"; };
+		LPF007 /* StationCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationCatalog.swift; sourceTree = "<group>"; };
+		LPF008 /* AppSettings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppSettings.swift; sourceTree = "<group>"; };
+		LPF009 /* RTTModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTTModels.swift; sourceTree = "<group>"; };
+		LPF010 /* RTTClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RTTClient.swift; sourceTree = "<group>"; };
+		LPF011 /* TimeFormatting.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeFormatting.swift; sourceTree = "<group>"; };
+		LPF012 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		LPF013 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		LPF014 /* LondonPlatforms.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LondonPlatforms.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		LPF015 /* Base.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Base.xcconfig; sourceTree = SOURCE_ROOT; };
+		LPF016 /* BoardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardViewModel.swift; sourceTree = "<group>"; };
+		LPF017 /* ServiceRows.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceRows.swift; sourceTree = "<group>"; };
+		LPF018 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		LPF019 /* L10n.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = L10n.swift; sourceTree = "<group>"; };
+		LPF020 /* Feedback.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Feedback.swift; sourceTree = "<group>"; };
+		LPF021 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		LPF022 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
+		LPF023 /* BoardListCompactView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardListCompactView.swift; sourceTree = "<group>"; };
+		LPF024 /* TimeUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeUtils.swift; sourceTree = "<group>"; };
+		LPF025 /* TrackedServiceModels.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackedServiceModels.swift; sourceTree = "<group>"; };
+		LPF026 /* TrackedServiceManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackedServiceManager.swift; sourceTree = "<group>"; };
+		LPF027 /* BackgroundRefresh.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackgroundRefresh.swift; sourceTree = "<group>"; };
+		LPF100 /* LondonPlatformsLiveActivityWidget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LondonPlatformsLiveActivityWidget.swift; sourceTree = "<group>"; };
+		LPF101 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		LPF102 /* RefreshNowIntent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RefreshNowIntent.swift; sourceTree = "<group>"; };
+		LPF200 /* LondonPlatformsLiveActivity.appex */ = {isa = PBXFileReference; explicitFileType = wrapper.app-extension; includeInIndex = 0; path = LondonPlatformsLiveActivity.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		LPFX01 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		LPR00 = {
+			isa = PBXGroup;
+			children = (
+				LPR01 /* LondonPlatforms */,
+				LPR10 /* LondonPlatformsLiveActivity */,
+				LPF015 /* Base.xcconfig */,
+				LPR03 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		LPR01 /* LondonPlatforms */ = {
+			isa = PBXGroup;
+			children = (
+				LPF001 /* LondonPlatformsApp.swift */,
+				LPF018 /* RootView.swift */,
+				LPF002 /* BoardListView.swift */,
+				LPF023 /* BoardListCompactView.swift */,
+				LPF016 /* BoardViewModel.swift */,
+				LPF027 /* BackgroundRefresh.swift */,
+				LPF024 /* TimeUtils.swift */,
+				LPF019 /* L10n.swift */,
+				LPF020 /* Feedback.swift */,
+				LPF025 /* TrackedServiceModels.swift */,
+				LPF026 /* TrackedServiceManager.swift */,
+				LPF021 /* Localizable.xcstrings */,
+				LPF022 /* PrivacyInfo.xcprivacy */,
+				LPF017 /* ServiceRows.swift */,
+				LPF003 /* ServiceDetailView.swift */,
+				LPF004 /* AboutSheet.swift */,
+				LPF005 /* StationPickerSheet.swift */,
+				LPF006 /* TimeFilterSheet.swift */,
+				LPF007 /* StationCatalog.swift */,
+				LPF008 /* AppSettings.swift */,
+				LPF009 /* RTTModels.swift */,
+				LPF010 /* RTTClient.swift */,
+				LPF011 /* TimeFormatting.swift */,
+				LPF012 /* Info.plist */,
+				LPF013 /* Assets.xcassets */,
+			);
+			path = LondonPlatforms;
+			sourceTree = SOURCE_ROOT;
+		};
+		LPR10 /* LondonPlatformsLiveActivity */ = {
+			isa = PBXGroup;
+			children = (
+				LPF100 /* LondonPlatformsLiveActivityWidget.swift */,
+				LPF101 /* Info.plist */,
+				LPF102 /* RefreshNowIntent.swift */,
+			);
+			path = LondonPlatformsLiveActivity;
+			sourceTree = SOURCE_ROOT;
+		};
+		LPR03 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				LPF014 /* LondonPlatforms.app */,
+				LPF200 /* LondonPlatformsLiveActivity.appex */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		LPT01 /* LondonPlatforms */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = LPC03 /* Build configuration list for PBXNativeTarget "LondonPlatforms" */;
+			buildPhases = (
+				LPS01 /* Sources */,
+				LPFX01 /* Frameworks */,
+				LPRES1 /* Resources */,
+				LPBEP1 /* Embed App Extensions */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LondonPlatforms;
+			productName = LondonPlatforms;
+			productReference = LPF014 /* LondonPlatforms.app */;
+			productType = "com.apple.product-type.application";
+		};
+		LPTLA1 /* LondonPlatformsLiveActivity */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = LPCLIVE1 /* Build configuration list for PBXNativeTarget "LondonPlatformsLiveActivity" */;
+			buildPhases = (
+				LPSLIVE1 /* Sources */,
+				LPFXLIVE1 /* Frameworks */,
+				LPRESLIVE1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LondonPlatformsLiveActivity;
+			productName = LondonPlatformsLiveActivity;
+			productReference = LPF200 /* LondonPlatformsLiveActivity.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		LPP01 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 2630;
+				TargetAttributes = {
+					LPT01 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = LPC01 /* Build configuration list for PBXProject "LondonPlatforms" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = LPR00;
+			productRefGroup = LPR03 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				LPT01 /* LondonPlatforms */,
+				LPTLA1 /* LondonPlatformsLiveActivity */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		LPRESLIVE1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				LPB103 /* Localizable.xcstrings in Resources (Widget) */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		LPSLIVE1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				LPB100 /* LondonPlatformsLiveActivityWidget.swift in Sources */,
+				LPB106 /* RefreshNowIntent.swift in Sources (Widget) */,
+				LPB101 /* TrackedServiceModels.swift in Sources (Widget) */,
+				LPB102 /* TimeFormatting.swift in Sources (Widget) */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		LPFXLIVE1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXResourcesBuildPhase section */
+		LPRES1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				LPB012 /* Assets.xcassets in Resources */,
+				LPB018 /* Localizable.xcstrings in Resources */,
+				LPB019 /* PrivacyInfo.xcprivacy in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		LPS01 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				LPB001 /* LondonPlatformsApp.swift in Sources */,
+				LPB015 /* RootView.swift in Sources */,
+				LPB002 /* BoardListView.swift in Sources */,
+				LPB020 /* BoardListCompactView.swift in Sources */,
+				LPB013 /* BoardViewModel.swift in Sources */,
+				LPB024 /* BackgroundRefresh.swift in Sources */,
+				LPB021 /* TimeUtils.swift in Sources */,
+				LPB016 /* L10n.swift in Sources */,
+				LPB017 /* Feedback.swift in Sources */,
+				LPB022 /* TrackedServiceModels.swift in Sources */,
+				LPB023 /* TrackedServiceManager.swift in Sources */,
+				LPB014 /* ServiceRows.swift in Sources */,
+				LPB003 /* ServiceDetailView.swift in Sources */,
+				LPB004 /* AboutSheet.swift in Sources */,
+				LPB005 /* StationPickerSheet.swift in Sources */,
+				LPB006 /* TimeFilterSheet.swift in Sources */,
+				LPB007 /* StationCatalog.swift in Sources */,
+				LPB008 /* AppSettings.swift in Sources */,
+				LPB009 /* RTTModels.swift in Sources */,
+				LPB010 /* RTTClient.swift in Sources */,
+				LPB011 /* TimeFormatting.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		LPCLIVED /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = LPF015 /* Base.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = GZ8V7VK98G;
+				INFOPLIST_FILE = LondonPlatformsLiveActivity/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.platforms.LondonPlatforms.LiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		LPCLIVER /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = LPF015 /* Base.xcconfig */;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = GZ8V7VK98G;
+				INFOPLIST_FILE = LondonPlatformsLiveActivity/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.platforms.LondonPlatforms.LiveActivity;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		LPCLIVE1 /* Build configuration list for PBXNativeTarget "LondonPlatformsLiveActivity" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				LPCLIVED /* Debug */,
+				LPCLIVER /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCBuildConfiguration section */
+		LPC101 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = LPF015 /* Base.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				DEVELOPMENT_TEAM = GZ8V7VK98G;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		LPC102 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = LPF015 /* Base.xcconfig */;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				DEVELOPMENT_TEAM = GZ8V7VK98G;
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 26.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		LPC201 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = LPF015 /* Base.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LondonPlatforms/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.platforms.LondonPlatforms;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		LPC202 /* Release */ = {
+			isa = XCBuildConfiguration;
+			baseConfigurationReference = LPF015 /* Base.xcconfig */;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LondonPlatforms/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.platforms.LondonPlatforms;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		LPC01 /* Build configuration list for PBXProject "LondonPlatforms" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				LPC101 /* Debug */,
+				LPC102 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		LPC03 /* Build configuration list for PBXNativeTarget "LondonPlatforms" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				LPC201 /* Debug */,
+				LPC202 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = LPP01 /* Project object */;
+}
