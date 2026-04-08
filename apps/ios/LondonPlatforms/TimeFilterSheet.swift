@@ -29,7 +29,6 @@ struct TimeFilterSheet: View {
             selection: $picked,
             displayedComponents: [.hourAndMinute]
           )
-          .datePickerStyle(.wheel)
         } footer: {
           Text(L10n.timeFilterFooter)
         }

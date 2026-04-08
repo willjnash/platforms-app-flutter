@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 
 /// List row layouts for the main board, sized for Dynamic Type and standard list metrics.
 enum ServiceRows {}
@@ -85,12 +84,17 @@ extension ServiceRows {
     @ViewBuilder
     private var platformTrailing: some View {
       if confirmed, let text = locationDetail.platform, !text.isEmpty {
-        Text(text)
-          .font(.title2.weight(.bold))
-          .monospacedDigit()
-          .lineLimit(1)
-          .minimumScaleFactor(0.6)
-          .accessibilityHidden(true)
+        HStack(spacing: 4) {
+          Image(systemName: "checkmark.circle.fill")
+            .font(.caption)
+            .foregroundStyle(.green)
+          Text(text)
+            .font(.title2.weight(.bold))
+            .monospacedDigit()
+        }
+        .lineLimit(1)
+        .minimumScaleFactor(0.6)
+        .accessibilityHidden(true)
       }
     }
 
@@ -166,32 +170,21 @@ extension ServiceRows {
   }
 }
 
-// MARK: - Confirmed row fill (Flutter used `Colors.lightGreenAccent`)
-
-enum ConfirmedDepartureHighlight {
-  /// Strong green row fill matching the legacy Flutter `Container(color: Colors.lightGreenAccent)`.
-  static var listRowFill: Color {
-    Color(uiColor: UIColor { traits in
-      if traits.accessibilityContrast == .high {
-        if traits.userInterfaceStyle == .dark {
-          return UIColor(red: 0.12, green: 0.42, blue: 0.2, alpha: 0.92)
-        }
-        return UIColor(red: 0.45, green: 0.85, blue: 0.4, alpha: 1.0)
-      }
-      if traits.userInterfaceStyle == .dark {
-        return UIColor(red: 0.16, green: 0.38, blue: 0.22, alpha: 0.65)
-      }
-      return UIColor(red: 0.78, green: 0.98, blue: 0.55, alpha: 1.0)
-    })
-  }
-}
+// MARK: - Confirmed departure row accent
 
 extension View {
-  /// `listRowBackground` on inner label views often does not paint the row; apply this on `NavigationLink` or selectable row instead.
+  /// Subtle leading accent for confirmed departures — tints the row without a heavy background fill.
   @ViewBuilder
-  func confirmedDepartureListRowBackground(_ isConfirmedDeparture: Bool) -> some View {
-    if isConfirmedDeparture {
-      self.listRowBackground(ConfirmedDepartureHighlight.listRowFill)
+  func confirmedDepartureStyle(isConfirmed: Bool) -> some View {
+    if isConfirmed {
+      self.listRowBackground(
+        HStack(spacing: 0) {
+          Rectangle()
+            .fill(Color.green)
+            .frame(width: 4)
+          Color.clear
+        }
+      )
     } else {
       self
     }

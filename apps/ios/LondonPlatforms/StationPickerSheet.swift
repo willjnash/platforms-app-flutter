@@ -6,10 +6,22 @@ struct StationPickerSheet: View {
   var selectedCRS: String
   var onPick: (Station) -> Void
 
+  @State private var searchText = ""
+
+  private var filteredStations: [Station] {
+    if searchText.isEmpty {
+      return StationCatalog.stations
+    }
+    let query = searchText.lowercased()
+    return StationCatalog.stations.filter {
+      $0.displayName.lowercased().contains(query) || $0.crs.lowercased().contains(query)
+    }
+  }
+
   var body: some View {
     NavigationStack {
       List {
-        ForEach(StationCatalog.stations) { station in
+        ForEach(filteredStations) { station in
           Button {
             onPick(station)
             dismiss()
@@ -35,6 +47,7 @@ struct StationPickerSheet: View {
       .listStyle(.insetGrouped)
       .navigationTitle(L10n.stationTitle)
       .navigationBarTitleDisplayMode(.inline)
+      .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
       .toolbar {
         ToolbarItem(placement: .cancellationAction) {
           Button(L10n.cancel, role: .cancel) { dismiss() }

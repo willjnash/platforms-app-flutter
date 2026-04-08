@@ -1,16 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "%@ → %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ → %2$@"
-          }
-        }
-      }
-    },
     "+%lld" : {
 
     },
@@ -113,6 +103,39 @@
         }
       }
     },
+    "calling_point_row_a11y_format" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, booked arrival %2$@"
+          }
+        }
+      }
+    },
+    "calling_point_row_a11y_continues_format" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Continues toward %@"
+          }
+        }
+      }
+    },
+    "calling_point_toward_format" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Toward %@"
+          }
+        }
+      }
+    },
     "cancel" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -124,9 +147,6 @@
         }
       }
     },
-    "Changed" : {
-
-    },
     "changed_badge" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -137,9 +157,6 @@
           }
         }
       }
-    },
-    "Checked %@" : {
-
     },
     "clear_filter" : {
       "extractionState" : "manual",
@@ -240,12 +257,6 @@
         }
       }
     },
-    "Exp %@" : {
-
-    },
-    "Expected %@" : {
-
-    },
     "headcode" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -334,12 +345,6 @@
         }
       }
     },
-    "Next %@" : {
-
-    },
-    "Next check %@" : {
-
-    },
     "no_calling_points" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -383,33 +388,6 @@
           }
         }
       }
-    },
-    "On time" : {
-
-    },
-    "pin" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pin"
-          }
-        }
-      }
-    },
-    "Plat %@%@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Plat %1$@%2$@"
-          }
-        }
-      }
-    },
-    "Platform —" : {
-
     },
     "platform_changed_a11y" : {
       "extractionState" : "manual",
@@ -671,17 +649,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Operator"
-          }
-        }
-      }
-    },
-    "unpin" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unpin"
           }
         }
       }

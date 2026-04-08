@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Two-column layout on iPad (and wide iPhone landscape where applicable); stacks on compact width.
 struct RootView: View {
-  @StateObject private var model = BoardViewModel()
+  @State private var model = BoardViewModel()
   @State private var selectedService: ServiceSummary?
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
 
@@ -10,7 +10,7 @@ struct RootView: View {
     Group {
       if horizontalSizeClass == .compact {
         NavigationStack {
-          BoardListCompactView(model: model)
+          BoardListView(model: model, selectedService: $selectedService)
         }
       } else {
         NavigationSplitView {
@@ -32,13 +32,6 @@ struct RootView: View {
             }
           }
         }
-      }
-    }
-    .onOpenURL { url in
-      guard url.scheme == "londonplatforms" else { return }
-      guard url.host == "refresh" else { return }
-      Task {
-        await model.load(userInitiated: true)
       }
     }
   }

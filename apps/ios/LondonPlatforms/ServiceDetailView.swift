@@ -43,7 +43,7 @@ struct ServiceDetailView: View {
       guard let originTime, let destName else { return nil }
       return "\(TimeFormatting.displayHHmm(originTime)) to \(destName)"
     }()
-    let lines = callingPointLines(from: d.locations)
+    let callingPoints = Self.callingPointRows(from: d.locations)
 
     return List {
       Section {
@@ -65,13 +65,12 @@ struct ServiceDetailView: View {
       }
 
       Section(L10n.callingPoints) {
-        if lines.isEmpty {
+        if callingPoints.isEmpty {
           Text(L10n.noCallingPoints)
             .foregroundStyle(.secondary)
         } else {
-          ForEach(Array(lines.enumerated()), id: \.offset) { _, line in
-            Text(line)
-              .fixedSize(horizontal: false, vertical: true)
+          ForEach(callingPoints) { row in
+            CallingPointRowView(row: row)
           }
         }
       }
@@ -82,24 +81,30 @@ struct ServiceDetailView: View {
     }
   }
 
-  /// SERVICE_SPEC §2.4 filtering and line format.
-  private func callingPointLines(from locations: [ServiceLocation]?) -> [String] {
+  /// SERVICE_SPEC §2.4 filtering. Presentation uses a split station / time row plus optional “toward” caption.
+  private static func callingPointRows(from locations: [ServiceLocation]?) -> [CallingPointRow] {
     guard let locations else { return [] }
-    var lines: [String] = []
-    for item in locations {
+    var rows: [CallingPointRow] = []
+    for (index, item) in locations.enumerated() {
       guard item.isPublicCall == true else { continue }
       guard let originFirst = item.origin?.first?.description,
             let desc = item.description,
             originFirst != desc else { continue }
-      guard item.gbttBookedArrival != nil else { continue }
-      let arr = TimeFormatting.displayHHmm(item.gbttBookedArrival)
-      var line = "\(desc) (\(arr))"
-      if let destFirst = item.destination?.first?.description, destFirst != desc {
-        line += ", "
-      }
-      lines.append(line)
+      guard let rawArrival = item.gbttBookedArrival else { continue }
+      let toward: String? = {
+        guard let destFirst = item.destination?.first?.description, destFirst != desc else { return nil }
+        return destFirst
+      }()
+      rows.append(
+        CallingPointRow(
+          id: "\(index)-\(desc)-\(rawArrival)",
+          stationName: desc,
+          arrivalDisplay: TimeFormatting.displayHHmm(rawArrival),
+          towardDestination: toward
+        )
+      )
     }
-    return lines
+    return rows
   }
 
   private func load() async {
@@ -111,5 +116,50 @@ struct ServiceDetailView: View {
     } catch {
       errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
     }
+  }
+}
+
+// MARK: - Calling points (§2.4)
+
+private struct CallingPointRow: Identifiable {
+  let id: String
+  let stationName: String
+  let arrivalDisplay: String
+  let towardDestination: String?
+}
+
+private struct CallingPointRowView: View {
+  let row: CallingPointRow
+
+  var body: some View {
+    VStack(alignment: .leading, spacing: 4) {
+      HStack(alignment: .firstTextBaseline, spacing: 12) {
+        Text(row.stationName)
+          .font(.body)
+          .foregroundStyle(.primary)
+          .multilineTextAlignment(.leading)
+          .frame(maxWidth: .infinity, alignment: .leading)
+
+        Text(row.arrivalDisplay)
+          .font(.subheadline)
+          .monospacedDigit()
+          .foregroundStyle(.secondary)
+          .layoutPriority(1)
+      }
+
+      if let toward = row.towardDestination {
+        Text(L10n.callingPointToward(toward))
+          .font(.caption)
+          .foregroundStyle(.tertiary)
+      }
+    }
+    .accessibilityElement(children: .ignore)
+    .accessibilityLabel(
+      L10n.callingPointRowAccessibility(
+        station: row.stationName,
+        time: row.arrivalDisplay,
+        toward: row.towardDestination
+      )
+    )
   }
 }

@@ -1,17 +1,25 @@
-import Combine
 import Foundation
+import Observation
 
+@Observable
 @MainActor
-final class BoardViewModel: ObservableObject {
-  @Published private(set) var services: [ServiceSummary] = []
-  @Published var isLoading = false
-  @Published var errorMessage: String?
-  @Published var lastRefreshLabel: String?
-  @Published var showingArrivals = false
-  @Published var filterTimeHHmm: String?
+final class BoardViewModel {
+  private(set) var services: [ServiceSummary] = []
+  var isLoading = false
+  var errorMessage: String?
+  var lastRefreshLabel: String?
+  var showingArrivals = false
+  var filterTimeHHmm: String?
 
   var stationCRS: String
   var stationDesc: String
+
+  private static let refreshFormatter: DateFormatter = {
+    let f = DateFormatter()
+    f.dateFormat = "HH:mm"
+    f.timeZone = TimeZone.current
+    return f
+  }()
 
   init() {
     stationCRS = AppSettings.savedCRS
@@ -43,15 +51,8 @@ final class BoardViewModel: ObservableObject {
         timeHHmm: filterTimeHHmm
       )
       services = res.services ?? []
-      let f = DateFormatter()
-      f.dateFormat = "HH:mm"
-      f.timeZone = TimeZone.current
-      lastRefreshLabel = f.string(from: Date())
+      lastRefreshLabel = Self.refreshFormatter.string(from: Date())
       persistBoardPreferences()
-      await TrackedServiceManager.shared.updateFromBoard(
-        stationName: stationDesc,
-        services: services
-      )
       if userInitiated {
         Feedback.boardRefreshCompleted(success: true)
       }
@@ -63,10 +64,8 @@ final class BoardViewModel: ObservableObject {
     }
   }
 
-  /// Large navigation title: station name (short, scales with Dynamic Type).
   var navigationTitle: String { stationDesc }
 
-  /// Context line under the segmented control (time filter state).
   var scheduleContextDescription: String {
     if let hhmm = filterTimeHHmm {
       return L10n.scheduleForTimeToday(TimeFormatting.displayHHmm(hhmm))

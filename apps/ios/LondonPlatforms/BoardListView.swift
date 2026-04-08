@@ -1,16 +1,19 @@
 import SwiftUI
 
-/// Primary column: live departures/arrivals board (HIG-friendly `NavigationSplitView` root on iPad).
+/// Adaptive board list: push navigation on compact, selection-driven on regular width.
 struct BoardListView: View {
-  @ObservedObject var model: BoardViewModel
+  @Bindable var model: BoardViewModel
   @Binding var selectedService: ServiceSummary?
+  @Environment(\.horizontalSizeClass) private var sizeClass
 
   @State private var showStationPicker = false
   @State private var showTimePicker = false
   @State private var showAbout = false
 
+  private var isCompact: Bool { sizeClass == .compact }
+
   var body: some View {
-    List(selection: $selectedService) {
+    List(selection: isCompact ? nil : $selectedService) {
       Section {
         Picker(L10n.boardSection, selection: $model.showingArrivals) {
           Text(L10n.departures).tag(false)
@@ -51,6 +54,9 @@ struct BoardListView: View {
     .listStyle(.insetGrouped)
     .navigationTitle(model.navigationTitle)
     .navigationBarTitleDisplayMode(.large)
+    .refreshable {
+      await model.load(userInitiated: true)
+    }
     .toolbar {
       ToolbarItemGroup(placement: .topBarTrailing) {
         if model.isLoading {
@@ -156,22 +162,40 @@ struct BoardListView: View {
       Section {
         ForEach(rows) { item in
           if let uid = item.serviceUid, let date = item.runDate, let ld = item.locationDetail {
-            Group {
-              if model.showingArrivals {
-                ServiceRows.Arrival(item: item, locationDetail: ld)
-              } else {
-                ServiceRows.Departure(item: item, locationDetail: ld)
-              }
-            }
-            .tag(item)
-            .confirmedDepartureListRowBackground(
-              !model.showingArrivals && ld.platformConfirmed == true
-            )
+            serviceRow(item: item, uid: uid, date: date, ld: ld)
           }
         }
       } header: {
         Text(model.showingArrivals ? L10n.sectionArrivals : L10n.sectionDepartures)
       }
+    }
+  }
+
+  @ViewBuilder
+  private func serviceRow(item: ServiceSummary, uid: String, date: String, ld: LocationDetail) -> some View {
+    let rowContent = Group {
+      if model.showingArrivals {
+        ServiceRows.Arrival(item: item, locationDetail: ld)
+      } else {
+        ServiceRows.Departure(item: item, locationDetail: ld)
+      }
+    }
+
+    if isCompact {
+      NavigationLink {
+        ServiceDetailView(serviceUid: uid, runDate: date)
+      } label: {
+        rowContent
+      }
+      .confirmedDepartureStyle(
+        isConfirmed: !model.showingArrivals && ld.platformConfirmed == true
+      )
+    } else {
+      rowContent
+        .tag(item)
+        .confirmedDepartureStyle(
+          isConfirmed: !model.showingArrivals && ld.platformConfirmed == true
+        )
     }
   }
 }

@@ -4,12 +4,12 @@ SwiftUI app implementing [docs/SERVICE_SPEC.md](../../docs/SERVICE_SPEC.md). Beh
 
 ## Requirements
 
-- **Xcode 26+** and **iOS 26** minimum deployment (Liquid Glass APIs such as `glassEffect` / `GlassEffectContainer`).
+- **Xcode 26+** and **iOS 26** minimum deployment.
 - RealTime Trains API credentials (HTTP Basic), supplied at build time — see below.
 
 ## Product / HIG notes
 
-- **NavigationSplitView** — board in the leading column; service detail in the trailing column on iPad (stacks on compact widths).
+- **Adaptive navigation** — `NavigationSplitView` with board + detail on regular width (e.g. iPad); `NavigationStack` with push for compact width (iPhone).
 - **String Catalog** — user-facing copy lives in [LondonPlatforms/Localizable.xcstrings](LondonPlatforms/Localizable.xcstrings); add locales there.
 - **Privacy manifest** — [LondonPlatforms/PrivacyInfo.xcprivacy](LondonPlatforms/PrivacyInfo.xcprivacy) (no tracking; no collected-data types declared).
 - **HIG audit checklist** — [HIG_CHECKLIST.md](HIG_CHECKLIST.md) (living checklist; App **icon** assets are still TODO separately).

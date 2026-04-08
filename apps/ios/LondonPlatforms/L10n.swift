@@ -21,8 +21,6 @@ enum L10n {
   static var menuStation: String { String(localized: "menu_station") }
   static var menuTimeFilter: String { String(localized: "menu_time_filter") }
   static var menuAbout: String { String(localized: "menu_about") }
-  static var pin: String { String(localized: "pin") }
-  static var unpin: String { String(localized: "unpin") }
 
   static var sectionDepartures: String { String(localized: "section_departures") }
   static var sectionArrivals: String { String(localized: "section_arrivals") }
@@ -60,6 +58,15 @@ enum L10n {
   static var routeSection: String { String(localized: "route_section") }
   static var callingPoints: String { String(localized: "calling_points") }
   static var noCallingPoints: String { String(localized: "no_calling_points") }
+  static func callingPointToward(_ destination: String) -> String {
+    String(format: String(localized: "calling_point_toward_format"), destination)
+  }
+  /// VoiceOver for a calling point row (station + time; optional continuation).
+  static func callingPointRowAccessibility(station: String, time: String, toward: String?) -> String {
+    let base = String(format: String(localized: "calling_point_row_a11y_format"), station, time)
+    guard let toward else { return base }
+    return base + ". " + String(format: String(localized: "calling_point_row_a11y_continues_format"), toward)
+  }
 
   static var platformUnknown: String { String(localized: "platform_unknown") }
   static func platformConfirmedA11y(_ platform: String) -> String {
