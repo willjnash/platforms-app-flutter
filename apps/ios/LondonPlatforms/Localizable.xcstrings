@@ -1,9 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "+%lld" : {
-
-    },
     "about_attribution" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -26,6 +23,17 @@
         }
       }
     },
+    "about_section" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About"
+          }
+        }
+      }
+    },
     "apply" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -44,17 +52,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "%1$@. From %2$@. Operator %3$@. Platform %4$@."
-          }
-        }
-      }
-    },
-    "arrival_row_a11y_no_platform_format" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@. From %2$@. Operator %3$@. No platform shown."
           }
         }
       }
@@ -103,17 +100,6 @@
         }
       }
     },
-    "calling_point_row_a11y_format" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%1$@, booked arrival %2$@"
-          }
-        }
-      }
-    },
     "calling_point_row_a11y_continues_format" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -121,6 +107,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Continues toward %@"
+          }
+        }
+      }
+    },
+    "calling_point_row_a11y_format" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@, booked arrival %2$@"
           }
         }
       }
@@ -143,6 +140,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "change_station" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Change station"
           }
         }
       }
@@ -187,28 +195,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delayed %d minutes"
-          }
-        }
-      }
-    },
-    "departure_subtitle_confirmed_format" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@, Platform Confirmed"
-          }
-        }
-      }
-    },
-    "departure_subtitle_pending_format" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%@, Platform Pending (expected %@)"
           }
         }
       }
@@ -279,6 +265,28 @@
         }
       }
     },
+    "live_a11y" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live data, auto-refreshing"
+          }
+        }
+      }
+    },
+    "live_label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Live"
+          }
+        }
+      }
+    },
     "loading" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -290,39 +298,6 @@
         }
       }
     },
-    "london_platforms" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "London Platforms"
-          }
-        }
-      }
-    },
-    "menu_about" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "About"
-          }
-        }
-      }
-    },
-    "menu_station" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Station"
-          }
-        }
-      }
-    },
     "menu_time_filter" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -330,17 +305,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Time filter"
-          }
-        }
-      }
-    },
-    "more_menu" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "More"
           }
         }
       }
@@ -411,13 +375,13 @@
         }
       }
     },
-    "platform_unknown" : {
+    "platform_pending_a11y_format" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Platform unknown"
+            "value" : "Platform %@, expected"
           }
         }
       }
@@ -451,17 +415,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Refresh"
-          }
-        }
-      }
-    },
-    "route_section" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Route"
           }
         }
       }
@@ -565,28 +518,6 @@
         }
       }
     },
-    "select_train_description" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Choose a service from the list."
-          }
-        }
-      }
-    },
-    "select_train_title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Select a train"
-          }
-        }
-      }
-    },
     "service_nav_title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -609,13 +540,79 @@
         }
       }
     },
+    "stations_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stations"
+          }
+        }
+      }
+    },
+    "status_cancelled" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancelled"
+          }
+        }
+      }
+    },
+    "status_delayed_format" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "+%d min"
+          }
+        }
+      }
+    },
+    "status_on_time" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "On time"
+          }
+        }
+      }
+    },
+    "tab_board" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Board"
+          }
+        }
+      }
+    },
+    "tab_settings" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Settings"
+          }
+        }
+      }
+    },
     "time_filter_footer" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Uses today’s date on this device. Clear the filter to show live boards."
+            "value" : "Uses today's date on this device. Clear the filter to show live boards."
           }
         }
       }
@@ -649,6 +646,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Operator"
+          }
+        }
+      }
+    },
+    "version_label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Version"
           }
         }
       }

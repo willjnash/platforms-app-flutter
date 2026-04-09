@@ -10,7 +10,7 @@
 		LPB001 /* LondonPlatformsApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF001 /* LondonPlatformsApp.swift */; };
 		LPB002 /* BoardListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF002 /* BoardListView.swift */; };
 		LPB003 /* ServiceDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF003 /* ServiceDetailView.swift */; };
-		LPB004 /* AboutSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF004 /* AboutSheet.swift */; };
+		LPB004 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF004 /* SettingsView.swift */; };
 		LPB005 /* StationPickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF005 /* StationPickerSheet.swift */; };
 		LPB006 /* TimeFilterSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF006 /* TimeFilterSheet.swift */; };
 		LPB007 /* StationCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF007 /* StationCatalog.swift */; };
@@ -33,7 +33,7 @@
 		LPF001 /* LondonPlatformsApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LondonPlatformsApp.swift; sourceTree = "<group>"; };
 		LPF002 /* BoardListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoardListView.swift; sourceTree = "<group>"; };
 		LPF003 /* ServiceDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ServiceDetailView.swift; sourceTree = "<group>"; };
-		LPF004 /* AboutSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AboutSheet.swift; sourceTree = "<group>"; };
+		LPF004 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		LPF005 /* StationPickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationPickerSheet.swift; sourceTree = "<group>"; };
 		LPF006 /* TimeFilterSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeFilterSheet.swift; sourceTree = "<group>"; };
 		LPF007 /* StationCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StationCatalog.swift; sourceTree = "<group>"; };
@@ -89,7 +89,7 @@
 				LPF022 /* PrivacyInfo.xcprivacy */,
 				LPF017 /* ServiceRows.swift */,
 				LPF003 /* ServiceDetailView.swift */,
-				LPF004 /* AboutSheet.swift */,
+				LPF004 /* SettingsView.swift */,
 				LPF005 /* StationPickerSheet.swift */,
 				LPF006 /* TimeFilterSheet.swift */,
 				LPF007 /* StationCatalog.swift */,
@@ -191,7 +191,7 @@
 				LPB017 /* Feedback.swift in Sources */,
 				LPB014 /* ServiceRows.swift in Sources */,
 				LPB003 /* ServiceDetailView.swift in Sources */,
-				LPB004 /* AboutSheet.swift in Sources */,
+				LPB004 /* SettingsView.swift in Sources */,
 				LPB005 /* StationPickerSheet.swift in Sources */,
 				LPB006 /* TimeFilterSheet.swift in Sources */,
 				LPB007 /* StationCatalog.swift in Sources */,

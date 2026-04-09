@@ -1,39 +1,17 @@
 import SwiftUI
 
-/// Adaptive board list: push navigation on compact, selection-driven on regular width.
 struct BoardListView: View {
   @Bindable var model: BoardViewModel
   @Binding var selectedService: ServiceSummary?
-  @Environment(\.horizontalSizeClass) private var sizeClass
+  var showsStationButton: Bool
 
   @State private var showStationPicker = false
   @State private var showTimePicker = false
-  @State private var showAbout = false
-
-  private var isCompact: Bool { sizeClass == .compact }
+  @Environment(\.scenePhase) private var scenePhase
 
   var body: some View {
-    List(selection: isCompact ? nil : $selectedService) {
-      Section {
-        Picker(L10n.boardSection, selection: $model.showingArrivals) {
-          Text(L10n.departures).tag(false)
-          Text(L10n.arrivals).tag(true)
-        }
-        .pickerStyle(.segmented)
-        .accessibilityLabel(L10n.boardPickerAccessibility)
-        .padding(.vertical, 6)
-      } footer: {
-        VStack(alignment: .leading, spacing: 6) {
-          Text(model.scheduleContextDescription)
-            .font(.footnote)
-            .foregroundStyle(.secondary)
-          if let last = model.lastRefreshLabel {
-            Text(L10n.lastUpdated(at: last))
-              .font(.caption)
-              .foregroundStyle(.tertiary)
-          }
-        }
-      }
+    List {
+      statusSection
 
       if let err = model.errorMessage {
         Section {
@@ -58,55 +36,61 @@ struct BoardListView: View {
       await model.load(userInitiated: true)
     }
     .toolbar {
-      ToolbarItemGroup(placement: .topBarTrailing) {
-        if model.isLoading {
-          ProgressView()
-            .controlSize(.regular)
-        } else {
-          Button {
-            Task { await model.load(userInitiated: true) }
-          } label: {
-            Image(systemName: "arrow.clockwise")
-          }
-          .accessibilityLabel(L10n.refresh)
-        }
-
-        Menu {
+      if showsStationButton {
+        ToolbarItem(placement: .topBarLeading) {
           Button {
             showStationPicker = true
           } label: {
-            Label(L10n.menuStation, systemImage: "mappin.and.ellipse")
+            Label(model.stationDesc, systemImage: "mappin.and.ellipse")
+              .labelStyle(.titleAndIcon)
           }
-          Button {
-            showTimePicker = true
-          } label: {
-            Label(L10n.menuTimeFilter, systemImage: "clock")
-          }
-          Divider()
-          Button {
-            showAbout = true
-          } label: {
-            Label(L10n.menuAbout, systemImage: "info.circle")
-          }
-        } label: {
-          Image(systemName: "ellipsis.circle")
+          .accessibilityLabel(L10n.changeStation)
         }
-        .accessibilityLabel(L10n.moreMenu)
+      }
+
+      ToolbarItem(placement: .principal) {
+        Picker(L10n.boardSection, selection: $model.showingArrivals) {
+          Text(L10n.departures).tag(false)
+          Text(L10n.arrivals).tag(true)
+        }
+        .pickerStyle(.segmented)
+        .frame(maxWidth: 220)
+        .accessibilityLabel(L10n.boardPickerAccessibility)
+      }
+
+      ToolbarItemGroup(placement: .topBarTrailing) {
+        timeFilterButton
+        refreshIndicator
       }
     }
     .task {
       await model.load()
+      model.startAutoRefresh()
     }
     .onChange(of: model.showingArrivals) { _, _ in
       selectedService = nil
       model.persistBoardPreferences()
       Task { await model.load() }
     }
-    .onChange(of: model.filterTimeHHmm) { _, _ in
+    .onChange(of: model.filterTimeHHmm) { _, newValue in
       model.persistBoardPreferences()
+      Task { await model.load() }
+      if newValue == nil {
+        model.startAutoRefresh()
+      } else {
+        model.stopAutoRefresh()
+      }
     }
-    .onChange(of: model.services) { _, _ in
-      pruneSelectionIfStale()
+    .onChange(of: scenePhase) { _, newPhase in
+      switch newPhase {
+      case .active:
+        Task { await model.load() }
+        model.startAutoRefresh()
+      case .background, .inactive:
+        model.stopAutoRefresh()
+      @unknown default:
+        break
+      }
     }
     .sheet(isPresented: $showStationPicker) {
       StationPickerSheet(
@@ -120,22 +104,100 @@ struct BoardListView: View {
     }
     .sheet(isPresented: $showTimePicker) {
       TimeFilterSheet(timeHHmm: $model.filterTimeHHmm)
-        .onDisappear {
-          model.persistBoardPreferences()
-          Task { await model.load() }
-        }
-    }
-    .sheet(isPresented: $showAbout) {
-      AboutSheet()
     }
   }
 
-  private func pruneSelectionIfStale() {
-    guard let current = selectedService else { return }
-    if !model.filteredServices.contains(where: { $0.id == current.id }) {
-      selectedService = nil
+  // MARK: - Status section (live indicator + last updated)
+
+  private var statusSection: some View {
+    Section {
+      HStack(spacing: 8) {
+        if model.isLive {
+          HStack(spacing: 4) {
+            Circle()
+              .fill(.green)
+              .frame(width: 8, height: 8)
+            Text(L10n.liveLabel)
+              .font(.subheadline.weight(.medium))
+              .foregroundStyle(.green)
+          }
+          .accessibilityLabel(L10n.liveA11y)
+        }
+
+        Text(model.scheduleContextDescription)
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
+
+        Spacer()
+
+        if let last = model.lastRefreshLabel {
+          Text(last)
+            .font(.caption)
+            .foregroundStyle(.tertiary)
+            .monospacedDigit()
+        }
+      }
+      .listRowBackground(Color.clear)
     }
   }
+
+  // MARK: - Time filter button
+
+  @ViewBuilder
+  private var timeFilterButton: some View {
+    if let hhmm = model.filterTimeHHmm {
+      Button {
+        model.filterTimeHHmm = nil
+      } label: {
+        HStack(spacing: 2) {
+          Text(TimeFormatting.displayHHmm(hhmm))
+            .monospacedDigit()
+          Image(systemName: "xmark.circle.fill")
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+      }
+      .accessibilityLabel(L10n.clearFilter)
+    } else {
+      Button {
+        showTimePicker = true
+      } label: {
+        Image(systemName: "clock")
+      }
+      .accessibilityLabel(L10n.menuTimeFilter)
+    }
+  }
+
+  // MARK: - Refresh / live indicator
+
+  @ViewBuilder
+  private var refreshIndicator: some View {
+    if model.isLoading {
+      ProgressView()
+        .controlSize(.regular)
+    } else {
+      Button {
+        Task { await model.load(userInitiated: true) }
+        model.startAutoRefresh()
+      } label: {
+        ZStack {
+          if model.isLive {
+            Circle()
+              .trim(from: 0, to: model.autoRefreshProgress)
+              .stroke(Color.green.opacity(0.5), lineWidth: 2)
+              .frame(width: 22, height: 22)
+              .rotationEffect(.degrees(-90))
+              .animation(.linear(duration: 1), value: model.autoRefreshProgress)
+          }
+          Image(systemName: "arrow.clockwise")
+            .font(.body)
+        }
+      }
+      .accessibilityLabel(L10n.refresh)
+    }
+  }
+
+  // MARK: - Services
 
   @ViewBuilder
   private var servicesSection: some View {
@@ -161,41 +223,27 @@ struct BoardListView: View {
     } else {
       Section {
         ForEach(rows) { item in
-          if let uid = item.serviceUid, let date = item.runDate, let ld = item.locationDetail {
-            serviceRow(item: item, uid: uid, date: date, ld: ld)
+          if let ld = item.locationDetail {
+            Button {
+              selectedService = item
+            } label: {
+              Group {
+                if model.showingArrivals {
+                  ServiceRows.Arrival(item: item, locationDetail: ld)
+                } else {
+                  ServiceRows.Departure(item: item, locationDetail: ld)
+                }
+              }
+            }
+            .tint(.primary)
+            .confirmedDepartureStyle(
+              isConfirmed: !model.showingArrivals && ld.platformConfirmed == true
+            )
           }
         }
       } header: {
         Text(model.showingArrivals ? L10n.sectionArrivals : L10n.sectionDepartures)
       }
-    }
-  }
-
-  @ViewBuilder
-  private func serviceRow(item: ServiceSummary, uid: String, date: String, ld: LocationDetail) -> some View {
-    let rowContent = Group {
-      if model.showingArrivals {
-        ServiceRows.Arrival(item: item, locationDetail: ld)
-      } else {
-        ServiceRows.Departure(item: item, locationDetail: ld)
-      }
-    }
-
-    if isCompact {
-      NavigationLink {
-        ServiceDetailView(serviceUid: uid, runDate: date)
-      } label: {
-        rowContent
-      }
-      .confirmedDepartureStyle(
-        isConfirmed: !model.showingArrivals && ld.platformConfirmed == true
-      )
-    } else {
-      rowContent
-        .tag(item)
-        .confirmedDepartureStyle(
-          isConfirmed: !model.showingArrivals && ld.platformConfirmed == true
-        )
     }
   }
 }

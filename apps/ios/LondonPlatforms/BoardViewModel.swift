@@ -14,6 +14,20 @@ final class BoardViewModel {
   var stationCRS: String
   var stationDesc: String
 
+  // Auto-refresh
+  private static let refreshIntervalSeconds = 30
+  var autoRefreshCountdown: Int = 0
+  private var refreshTask: Task<Void, Never>?
+
+  /// True when showing live boards (no time filter).
+  var isLive: Bool { filterTimeHHmm == nil }
+
+  /// 0.0–1.0 progress toward next auto-refresh.
+  var autoRefreshProgress: Double {
+    guard isLive, autoRefreshCountdown > 0 else { return 0 }
+    return 1.0 - (Double(autoRefreshCountdown) / Double(Self.refreshIntervalSeconds))
+  }
+
   private static let refreshFormatter: DateFormatter = {
     let f = DateFormatter()
     f.dateFormat = "HH:mm"
@@ -63,6 +77,34 @@ final class BoardViewModel {
       }
     }
   }
+
+  // MARK: - Auto-refresh
+
+  func startAutoRefresh() {
+    stopAutoRefresh()
+    guard isLive else { return }
+    autoRefreshCountdown = Self.refreshIntervalSeconds
+    refreshTask = Task {
+      while !Task.isCancelled {
+        for i in stride(from: Self.refreshIntervalSeconds, through: 1, by: -1) {
+          autoRefreshCountdown = i
+          try? await Task.sleep(for: .seconds(1))
+          if Task.isCancelled { return }
+        }
+        autoRefreshCountdown = 0
+        await load()
+        autoRefreshCountdown = Self.refreshIntervalSeconds
+      }
+    }
+  }
+
+  func stopAutoRefresh() {
+    refreshTask?.cancel()
+    refreshTask = nil
+    autoRefreshCountdown = 0
+  }
+
+  // MARK: - Derived
 
   var navigationTitle: String { stationDesc }
 

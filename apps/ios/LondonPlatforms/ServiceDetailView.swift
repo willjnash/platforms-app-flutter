@@ -7,30 +7,38 @@ struct ServiceDetailView: View {
   @State private var detail: ServiceDetailResponse?
   @State private var isLoading = false
   @State private var errorMessage: String?
+  @Environment(\.dismiss) private var dismiss
 
   var body: some View {
-    Group {
-      if isLoading && detail == nil {
-        ProgressView(L10n.loading)
-          .frame(maxWidth: .infinity, maxHeight: .infinity)
-      } else if let err = errorMessage {
-        ContentUnavailableView(
-          L10n.couldNotLoadService,
-          systemImage: "wifi.exclamationmark",
-          description: Text(err)
-        )
-      } else if let detail {
-        detailList(detail)
-      } else {
-        ContentUnavailableView(
-          L10n.noData,
-          systemImage: "train.side.front.car",
-          description: Text(L10n.pullToRefreshHint)
-        )
+    NavigationStack {
+      Group {
+        if isLoading && detail == nil {
+          ProgressView(L10n.loading)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        } else if let err = errorMessage {
+          ContentUnavailableView(
+            L10n.couldNotLoadService,
+            systemImage: "wifi.exclamationmark",
+            description: Text(err)
+          )
+        } else if let detail {
+          detailList(detail)
+        } else {
+          ContentUnavailableView(
+            L10n.noData,
+            systemImage: "train.side.front.car",
+            description: Text(L10n.pullToRefreshHint)
+          )
+        }
+      }
+      .navigationTitle(L10n.serviceNavTitle)
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .confirmationAction) {
+          Button(L10n.done) { dismiss() }
+        }
       }
     }
-    .navigationTitle(L10n.serviceNavTitle)
-    .navigationBarTitleDisplayMode(.inline)
     .task {
       await load()
     }
@@ -47,20 +55,17 @@ struct ServiceDetailView: View {
 
     return List {
       Section {
+        if let headline {
+          Text(headline)
+            .font(.headline)
+            .fixedSize(horizontal: false, vertical: true)
+        }
         LabeledContent(L10n.headcode) {
           Text(d.trainIdentity ?? L10n.emDash)
             .monospaced()
         }
         LabeledContent(L10n.trainOperator) {
           Text(d.atocName ?? L10n.emDash)
-        }
-      }
-
-      if let headline {
-        Section(L10n.routeSection) {
-          Text(headline)
-            .font(.headline)
-            .fixedSize(horizontal: false, vertical: true)
         }
       }
 
@@ -81,7 +86,6 @@ struct ServiceDetailView: View {
     }
   }
 
-  /// SERVICE_SPEC §2.4 filtering. Presentation uses a split station / time row plus optional “toward” caption.
   private static func callingPointRows(from locations: [ServiceLocation]?) -> [CallingPointRow] {
     guard let locations else { return [] }
     var rows: [CallingPointRow] = []
@@ -91,16 +95,26 @@ struct ServiceDetailView: View {
             let desc = item.description,
             originFirst != desc else { continue }
       guard let rawArrival = item.gbttBookedArrival else { continue }
+
+      let isCancelled = item.displayAs == "CANCELLED_CALL"
+      let realtimeArrival = item.realtimeArrival
+      let expectedDiffers = realtimeArrival != nil && realtimeArrival != rawArrival
+
       let toward: String? = {
         guard let destFirst = item.destination?.first?.description, destFirst != desc else { return nil }
         return destFirst
       }()
+
       rows.append(
         CallingPointRow(
           id: "\(index)-\(desc)-\(rawArrival)",
           stationName: desc,
           arrivalDisplay: TimeFormatting.displayHHmm(rawArrival),
-          towardDestination: toward
+          expectedArrivalDisplay: expectedDiffers ? TimeFormatting.displayHHmm(realtimeArrival) : nil,
+          platform: item.platform,
+          platformConfirmed: item.platformConfirmed == true,
+          towardDestination: toward,
+          isCancelled: isCancelled
         )
       )
     }
@@ -119,38 +133,56 @@ struct ServiceDetailView: View {
   }
 }
 
-// MARK: - Calling points (§2.4)
+// MARK: - Calling points
 
 private struct CallingPointRow: Identifiable {
   let id: String
   let stationName: String
   let arrivalDisplay: String
+  let expectedArrivalDisplay: String?
+  let platform: String?
+  let platformConfirmed: Bool
   let towardDestination: String?
+  let isCancelled: Bool
 }
 
 private struct CallingPointRowView: View {
   let row: CallingPointRow
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 4) {
-      HStack(alignment: .firstTextBaseline, spacing: 12) {
+    HStack(spacing: 12) {
+      VStack(alignment: .leading, spacing: 2) {
         Text(row.stationName)
           .font(.body)
-          .foregroundStyle(.primary)
-          .multilineTextAlignment(.leading)
-          .frame(maxWidth: .infinity, alignment: .leading)
+          .foregroundStyle(row.isCancelled ? .secondary : .primary)
+          .strikethrough(row.isCancelled)
 
+        if let toward = row.towardDestination {
+          Text(L10n.callingPointToward(toward))
+            .font(.caption)
+            .foregroundStyle(.tertiary)
+        }
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+
+      VStack(alignment: .trailing, spacing: 2) {
         Text(row.arrivalDisplay)
           .font(.subheadline)
           .monospacedDigit()
-          .foregroundStyle(.secondary)
-          .layoutPriority(1)
-      }
+          .foregroundStyle(row.isCancelled ? .tertiary : .secondary)
+          .strikethrough(row.isCancelled)
 
-      if let toward = row.towardDestination {
-        Text(L10n.callingPointToward(toward))
-          .font(.caption)
-          .foregroundStyle(.tertiary)
+        if let exp = row.expectedArrivalDisplay, !row.isCancelled {
+          Text(exp)
+            .font(.caption.monospacedDigit().weight(.semibold))
+            .foregroundStyle(.orange)
+        }
+      }
+      .layoutPriority(1)
+
+      if let p = row.platform, !p.isEmpty, !row.isCancelled {
+        PlatformBadge(platform: p, isConfirmed: row.platformConfirmed, isCancelled: false)
+          .scaleEffect(0.85)
       }
     }
     .accessibilityElement(children: .ignore)

@@ -28,13 +28,17 @@ struct ServiceSummary: Decodable, Identifiable, Hashable {
 struct LocationDetail: Decodable, Hashable {
   let realtimeActivated: Bool?
   let gbttBookedDeparture: String?
+  let gbttBookedArrival: String?
   let origin: [CallPointRef]?
   let destination: [CallPointRef]?
   let realtimeDeparture: String?
   let realtimeDepartureActual: Bool?
+  let realtimeArrival: String?
+  let realtimeArrivalActual: Bool?
   let platform: String?
   let platformConfirmed: Bool?
   let platformChanged: Bool?
+  let displayAs: String?
 }
 
 struct CallPointRef: Decodable, Hashable {
@@ -60,4 +64,10 @@ struct ServiceLocation: Decodable {
   let destination: [CallPointRef]?
   let isPublicCall: Bool?
   let gbttBookedArrival: String?
+  let gbttBookedDeparture: String?
+  let realtimeArrival: String?
+  let realtimeDeparture: String?
+  let platform: String?
+  let platformConfirmed: Bool?
+  let displayAs: String?
 }
