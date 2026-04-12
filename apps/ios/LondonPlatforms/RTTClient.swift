@@ -93,10 +93,15 @@ final class RTTClient {
     return f
   }()
 
-  // MARK: - API requests
+  // MARK: - Board
 
-  func fetchBoard(crs: String, arrivals: Bool, timeHHmm: String?) async throws -> DeparturesResponse {
-    let url = try locationURL(crs: crs, timeHHmm: timeHHmm)
+  func fetchBoard(
+    crs: String,
+    arrivals: Bool,
+    timeHHmm: String?,
+    filterToCRS: String? = nil
+  ) async throws -> DeparturesResponse {
+    let url = try locationURL(crs: crs, timeHHmm: timeHHmm, filterToCRS: filterToCRS)
     var request = URLRequest(url: url)
     request.setValue("Bearer \(try await accessToken())", forHTTPHeaderField: "Authorization")
     let (data, response) = try await session.data(for: request)
@@ -115,6 +120,8 @@ final class RTTClient {
       throw RTTError.decoding(error)
     }
   }
+
+  // MARK: - Service detail
 
   func fetchServiceDetail(serviceUid: String, runDate: String) async throws -> ServiceDetailResponse {
     var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)!
@@ -140,9 +147,37 @@ final class RTTClient {
     }
   }
 
+  // MARK: - Station catalog
+
+  /// Fetches all UK passenger stops and caches them in `StationCatalog`.
+  func fetchAndCacheStops() async {
+    guard let url = URL(string: "https://data.rtt.io/data/stops") else { return }
+    guard let token = try? await accessToken() else { return }
+    var request = URLRequest(url: url)
+    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+    guard let (data, response) = try? await session.data(for: request),
+          (response as? HTTPURLResponse)?.statusCode == 200 else { return }
+
+    struct StopsResponse: Decodable {
+      struct Stop: Decodable {
+        let description: String?
+        let shortCode: String?
+      }
+      let stops: [Stop]
+    }
+    guard let parsed = try? jsonDecoder.decode(StopsResponse.self, from: data) else { return }
+    let stations = parsed.stops.compactMap { stop -> Station? in
+      guard let crs = stop.shortCode, !crs.isEmpty,
+            let name = stop.description, !name.isEmpty else { return nil }
+      return Station(crs: crs, displayName: name)
+    }
+    .sorted { $0.displayName < $1.displayName }
+    StationCatalog.updateCache(stations)
+  }
+
   // MARK: - URL helpers
 
-  private func locationURL(crs: String, timeHHmm: String?) throws -> URL {
+  private func locationURL(crs: String, timeHHmm: String?, filterToCRS: String?) throws -> URL {
     var components = URLComponents(url: baseURL, resolvingAgainstBaseURL: false)!
     components.path = "/gb-nr/location"
     var items: [URLQueryItem] = [URLQueryItem(name: "code", value: crs.uppercased())]
@@ -156,6 +191,9 @@ final class RTTClient {
       let mm = String(timeHHmm.dropFirst(2).prefix(2))
       let timeFrom = String(format: "%04d-%02d-%02dT%@:%@:00", y, m, d, hh, mm)
       items.append(URLQueryItem(name: "timeFrom", value: timeFrom))
+    }
+    if let filterToCRS, !filterToCRS.isEmpty {
+      items.append(URLQueryItem(name: "filterTo", value: filterToCRS.uppercased()))
     }
     components.queryItems = items
     guard let url = components.url else { throw RTTError.invalidURL }

@@ -5,6 +5,7 @@ struct StationPickerSheet: View {
 
   var selectedCRS: String
   var onPick: (Station) -> Void
+  var title: String = L10n.stationTitle
 
   @State private var searchText = ""
 
@@ -45,7 +46,7 @@ struct StationPickerSheet: View {
         }
       }
       .listStyle(.insetGrouped)
-      .navigationTitle(L10n.stationTitle)
+      .navigationTitle(title)
       .navigationBarTitleDisplayMode(.inline)
       .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
       .toolbar {

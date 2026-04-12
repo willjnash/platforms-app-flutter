@@ -10,18 +10,23 @@ extension ServiceRows {
     let item: ServiceSummary
     let locationDetail: LocationDetail
 
-    private var destination: String {
-      locationDetail.destination?.first?.description ?? L10n.emDash
+    private var isPassThrough: Bool {
+      locationDetail.gbttBookedDeparture == nil && locationDetail.passHHmm != nil
     }
 
     private var scheduledTime: String {
-      TimeFormatting.displayHHmm(locationDetail.gbttBookedDeparture)
+      TimeFormatting.displayHHmm(locationDetail.gbttBookedDeparture ?? locationDetail.passHHmm)
     }
 
     private var expectedTime: String? {
-      guard let rt = locationDetail.realtimeDeparture,
+      guard !isPassThrough,
+            let rt = locationDetail.realtimeDeparture,
             rt != locationDetail.gbttBookedDeparture else { return nil }
       return TimeFormatting.displayHHmm(rt)
+    }
+
+    private var destination: String {
+      locationDetail.destination?.first?.description ?? L10n.emDash
     }
 
     private var confirmed: Bool { locationDetail.platformConfirmed == true }
@@ -29,7 +34,8 @@ extension ServiceRows {
     private var isCancelled: Bool { locationDetail.displayAs == "CANCELLED" }
 
     private var delayMinutes: Int? {
-      TimeUtils.delayMinutes(
+      if let server = locationDetail.departureLatenessMinutes { return server }
+      return TimeUtils.delayMinutes(
         bookedHHmm: locationDetail.gbttBookedDeparture,
         realtimeHHmm: locationDetail.realtimeDeparture
       )
@@ -37,9 +43,8 @@ extension ServiceRows {
 
     private var status: ServiceStatus {
       if isCancelled { return .cancelled }
-      if let delay = delayMinutes {
-        if delay > 0 { return .delayed(delay) }
-      }
+      if isPassThrough { return .passThrough }
+      if let delay = delayMinutes, delay > 0 { return .delayed(delay) }
       if locationDetail.realtimeActivated == true { return .onTime }
       return .scheduled
     }
@@ -63,39 +68,73 @@ extension ServiceRows {
         .frame(minWidth: 52, alignment: .leading)
         .accessibilitySortPriority(0.5)
 
-        // Destination + status
-        VStack(alignment: .leading, spacing: 4) {
+        // Destination + sub-info
+        VStack(alignment: .leading, spacing: 3) {
+          // Line 1: destination
           Text(destination)
             .font(.body)
             .fontWeight(confirmed ? .semibold : .regular)
             .foregroundStyle(isCancelled ? .secondary : .primary)
             .strikethrough(isCancelled)
 
-          HStack(spacing: 6) {
-            Text(item.atocName ?? "")
-              .font(.subheadline)
-              .foregroundStyle(.secondary)
+          // Line 2: headcode · operator · coaches — all caption, one line
+          subInfoLine
 
-            StatusBadge(status: status)
-
-            if changed {
-              CapsuleBadge(text: L10n.changedBadge, style: .orange)
-                .accessibilityLabel(L10n.platformChangedA11y)
+          // Line 3: status badges — only when something noteworthy to show
+          let hasLine3 = status != .onTime && status != .scheduled
+            || locationDetail.departureStatus != nil
+            || isBusReplacement || changed
+          if hasLine3 {
+            HStack(spacing: 4) {
+              StatusBadge(status: status)
+              LiveStatusChip(liveStatus: locationDetail.departureStatus)
+              if isBusReplacement {
+                CapsuleBadge(text: L10n.busReplacementBadge, style: .purple)
+              }
+              if changed {
+                CapsuleBadge(text: L10n.changedBadge, style: .orange)
+                  .accessibilityLabel(L10n.platformChangedA11y)
+              }
             }
+          }
+
+          if let reason = locationDetail.delayReason, (isCancelled || status.isDelayed) {
+            Text(reason)
+              .font(.caption)
+              .foregroundStyle(.secondary)
+              .lineLimit(1)
           }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
 
-        // Platform badge
+        // Trailing: platform only
         PlatformBadge(
           platform: locationDetail.platform,
           isConfirmed: confirmed,
-          isCancelled: isCancelled
+          isCancelled: isCancelled || isPassThrough
         )
       }
       .padding(.vertical, 2)
       .accessibilityElement(children: .combine)
       .accessibilityLabel(accessibilitySummary)
+    }
+
+    private var subInfoLine: some View {
+      var parts: [String] = []
+      if let headcode = item.trainIdentity { parts.append(headcode) }
+      if let op = item.atocName, !op.isEmpty { parts.append(op) }
+      if let n = locationDetail.numberOfVehicles, n > 0, !isCancelled {
+        parts.append(L10n.vehiclesFormat(n))
+      }
+      return Text(parts.joined(separator: " · "))
+        .font(.caption.monospacedDigit())
+        .foregroundStyle(.secondary)
+        .lineLimit(2)
+    }
+
+    private var isBusReplacement: Bool {
+      guard let mode = item.modeType else { return false }
+      return mode == "REPLACEMENT_BUS" || mode == "BUS" || mode == "SCHEDULED_BUS"
     }
 
     private var accessibilitySummary: String {
@@ -104,6 +143,7 @@ extension ServiceRows {
       case .onTime: parts.append(L10n.statusOnTime)
       case .delayed(let m): parts.append(L10n.delayA11y(m))
       case .cancelled: parts.append(L10n.statusCancelled)
+      case .passThrough: parts.append(L10n.statusPassThrough)
       case .scheduled: break
       }
       if confirmed, let p = locationDetail.platform, !p.isEmpty {
@@ -139,7 +179,8 @@ extension ServiceRows {
     private var isCancelled: Bool { locationDetail.displayAs == "CANCELLED" }
 
     private var delayMinutes: Int? {
-      TimeUtils.delayMinutes(
+      if let server = locationDetail.arrivalLatenessMinutes { return server }
+      return TimeUtils.delayMinutes(
         bookedHHmm: locationDetail.gbttBookedArrival,
         realtimeHHmm: locationDetail.realtimeArrival
       )
@@ -147,9 +188,7 @@ extension ServiceRows {
 
     private var status: ServiceStatus {
       if isCancelled { return .cancelled }
-      if let delay = delayMinutes {
-        if delay > 0 { return .delayed(delay) }
-      }
+      if let delay = delayMinutes, delay > 0 { return .delayed(delay) }
       if locationDetail.realtimeActivated == true { return .onTime }
       return .scheduled
     }
@@ -171,23 +210,37 @@ extension ServiceRows {
         }
         .frame(minWidth: 52, alignment: .leading)
 
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 3) {
+          // Line 1: origin
           Text(origin)
             .font(.body)
             .fontWeight(.semibold)
             .foregroundStyle(isCancelled ? .secondary : .primary)
             .strikethrough(isCancelled)
 
-          HStack(spacing: 6) {
-            Text(item.atocName ?? "")
-              .font(.subheadline)
-              .foregroundStyle(.secondary)
+          // Line 2: headcode · operator · coaches
+          subInfoLine
 
-            StatusBadge(status: status)
+          // Line 3: status badges — only when noteworthy
+          let hasLine3 = status != .onTime && status != .scheduled
+            || locationDetail.arrivalStatus != nil
+          if hasLine3 {
+            HStack(spacing: 4) {
+              StatusBadge(status: status)
+              LiveStatusChip(liveStatus: locationDetail.arrivalStatus)
+            }
+          }
+
+          if let reason = locationDetail.delayReason, (isCancelled || status.isDelayed) {
+            Text(reason)
+              .font(.caption)
+              .foregroundStyle(.secondary)
+              .lineLimit(1)
           }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
 
+        // Trailing: platform only
         PlatformBadge(
           platform: locationDetail.platform,
           isConfirmed: false,
@@ -199,13 +252,26 @@ extension ServiceRows {
       .accessibilityLabel(accessibilitySummary)
     }
 
+    private var subInfoLine: some View {
+      var parts: [String] = []
+      if let headcode = item.trainIdentity { parts.append(headcode) }
+      if let op = item.atocName, !op.isEmpty { parts.append(op) }
+      if let n = locationDetail.numberOfVehicles, n > 0, !isCancelled {
+        parts.append(L10n.vehiclesFormat(n))
+      }
+      return Text(parts.joined(separator: " · "))
+        .font(.caption.monospacedDigit())
+        .foregroundStyle(.secondary)
+        .lineLimit(2)
+    }
+
     private var accessibilitySummary: String {
       var parts = [scheduledTime, origin, item.atocName ?? ""]
       switch status {
       case .onTime: parts.append(L10n.statusOnTime)
       case .delayed(let m): parts.append(L10n.delayA11y(m))
       case .cancelled: parts.append(L10n.statusCancelled)
-      case .scheduled: break
+      case .passThrough, .scheduled: break
       }
       if let p = locationDetail.platform, !p.isEmpty {
         parts.append(L10n.arrivalRowA11y(time: scheduledTime, origin: origin, operatorName: "", platform: p))
@@ -217,11 +283,17 @@ extension ServiceRows {
 
 // MARK: - Service status
 
-enum ServiceStatus {
+enum ServiceStatus: Equatable {
   case scheduled
   case onTime
   case delayed(Int)
   case cancelled
+  case passThrough
+
+  var isDelayed: Bool {
+    if case .delayed = self { return true }
+    return false
+  }
 }
 
 // MARK: - Status badge
@@ -231,14 +303,38 @@ private struct StatusBadge: View {
 
   var body: some View {
     switch status {
-    case .scheduled:
+    case .scheduled, .onTime:
       EmptyView()
-    case .onTime:
-      CapsuleBadge(text: L10n.statusOnTime, style: .green)
     case .delayed(let minutes):
       CapsuleBadge(text: L10n.statusDelayed(minutes), style: .orange)
     case .cancelled:
       CapsuleBadge(text: L10n.statusCancelled, style: .red)
+    case .passThrough:
+      CapsuleBadge(text: L10n.statusPassThrough, style: .secondary)
+    }
+  }
+}
+
+// MARK: - Live status chip
+
+/// Shows the real-time operational status of the train at this location
+/// (e.g. "Approaching", "At platform", "Departing").
+struct LiveStatusChip: View {
+  let liveStatus: String?
+
+  var body: some View {
+    guard let liveStatus else { return AnyView(EmptyView()) }
+    switch liveStatus {
+    case "APPROACHING":
+      return AnyView(CapsuleBadge(text: L10n.statusApproaching, style: .yellow))
+    case "ARRIVING":
+      return AnyView(CapsuleBadge(text: L10n.statusArriving, style: .green))
+    case "AT_PLATFORM":
+      return AnyView(CapsuleBadge(text: L10n.statusAtPlatform, style: .green))
+    case "DEPARTING":
+      return AnyView(CapsuleBadge(text: L10n.statusDeparting, style: .blue))
+    default:
+      return AnyView(EmptyView())
     }
   }
 }
@@ -250,13 +346,17 @@ struct CapsuleBadge: View {
   let style: BadgeStyle
 
   enum BadgeStyle {
-    case green, orange, red
+    case green, orange, red, yellow, blue, purple, secondary
 
     var foreground: Color {
       switch self {
       case .green: .green
       case .orange: .orange
       case .red: .red
+      case .yellow: .yellow
+      case .blue: .blue
+      case .purple: .purple
+      case .secondary: .secondary
       }
     }
 
@@ -265,6 +365,10 @@ struct CapsuleBadge: View {
       case .green: Color.green.opacity(0.12)
       case .orange: Color.orange.opacity(0.12)
       case .red: Color.red.opacity(0.12)
+      case .yellow: Color.yellow.opacity(0.12)
+      case .blue: Color.blue.opacity(0.12)
+      case .purple: Color.purple.opacity(0.12)
+      case .secondary: Color.secondary.opacity(0.1)
       }
     }
   }
@@ -291,10 +395,9 @@ struct PlatformBadge: View {
       EmptyView()
     } else if let p = platform, !p.isEmpty {
       Text(p)
-        .font(.title3.weight(isConfirmed ? .bold : .medium))
-        .monospacedDigit()
+        .font(.headline.monospacedDigit())
         .foregroundStyle(isConfirmed ? .white : .secondary)
-        .frame(minWidth: 34, minHeight: 34)
+        .frame(minWidth: 34, minHeight: 34, maxHeight: 34, alignment: .center)
         .background(
           RoundedRectangle(cornerRadius: 8)
             .fill(isConfirmed ? Color.green : Color.clear)

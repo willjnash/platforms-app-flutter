@@ -42,6 +42,39 @@ enum L10n {
     String(format: String(localized: "status_delayed_format"), minutes)
   }
   static var statusCancelled: String { String(localized: "status_cancelled") }
+  static var statusPassThrough: String { String(localized: "status_pass_through") }
+
+  // MARK: - Live operational status
+  static var statusApproaching: String { String(localized: "status_approaching") }
+  static var statusArriving: String { String(localized: "status_arriving") }
+  static var statusAtPlatform: String { String(localized: "status_at_platform") }
+  static var statusDeparting: String { String(localized: "status_departing") }
+
+  // MARK: - System status banner
+  static var systemStatusDegraded: String { String(localized: "system_status_degraded") }
+  static var systemStatusScheduleOnly: String { String(localized: "system_status_schedule_only") }
+  static var systemStatusDataNone: String { String(localized: "system_status_data_none") }
+  static var systemStatusDataLimited: String { String(localized: "system_status_data_limited") }
+
+  // MARK: - Bus replacement
+  static var busReplacementBadge: String { String(localized: "bus_replacement_badge") }
+
+  // MARK: - Filter menu
+  static var filterMenuLabel: String { String(localized: "filter_menu_label") }
+  static var filterByDestination: String { String(localized: "filter_by_destination") }
+  static var filterByTime: String { String(localized: "filter_by_time") }
+  static var clearFilters: String { String(localized: "clear_filters") }
+  static func activeFilterTowards(_ crs: String) -> String {
+    String(format: String(localized: "active_filter_towards_format"), crs)
+  }
+  static func activeFilterTime(_ time: String) -> String {
+    String(format: String(localized: "active_filter_time_format"), time)
+  }
+
+  // MARK: - Towards filter
+  static var towardsFilterTitle: String { String(localized: "towards_filter_title") }
+  static var towardsFilterAccessibility: String { String(localized: "towards_filter_a11y") }
+  static var clearTowardsFilter: String { String(localized: "clear_towards_filter") }
 
   // MARK: - Stations
   static var stationTitle: String { String(localized: "station_title") }
@@ -65,6 +98,7 @@ enum L10n {
 
   static var headcode: String { String(localized: "headcode") }
   static var trainOperator: String { String(localized: "train_operator") }
+  static var delayReasonLabel: String { String(localized: "delay_reason_label") }
   static var callingPoints: String { String(localized: "calling_points") }
   static var noCallingPoints: String { String(localized: "no_calling_points") }
   static func callingPointToward(_ destination: String) -> String {
@@ -74,6 +108,35 @@ enum L10n {
     let base = String(format: String(localized: "calling_point_row_a11y_format"), station, time)
     guard let toward else { return base }
     return base + ". " + String(format: String(localized: "calling_point_row_a11y_continues_format"), toward)
+  }
+
+  // MARK: - Request stop
+  static var requestStopBadge: String { String(localized: "request_stop_badge") }
+
+  // MARK: - Associations
+  static var associationsSection: String { String(localized: "associations_section") }
+  static func associationJoinFrom(_ headcode: String) -> String {
+    String(format: String(localized: "association_join_from_format"), headcode)
+  }
+  static func associationJoinInto(_ headcode: String) -> String {
+    String(format: String(localized: "association_join_into_format"), headcode)
+  }
+  static func associationDivideInto(_ headcode: String) -> String {
+    String(format: String(localized: "association_divide_into_format"), headcode)
+  }
+  static func associationDivideFrom(_ headcode: String) -> String {
+    String(format: String(localized: "association_divide_from_format"), headcode)
+  }
+  static func associationFormInto(_ headcode: String) -> String {
+    String(format: String(localized: "association_form_into_format"), headcode)
+  }
+  static func associationFormFrom(_ headcode: String) -> String {
+    String(format: String(localized: "association_form_from_format"), headcode)
+  }
+
+  // MARK: - Vehicle count
+  static func vehiclesFormat(_ count: Int) -> String {
+    String(format: String(localized: "vehicles_format"), count)
   }
 
   // MARK: - Platform
@@ -95,7 +158,10 @@ enum L10n {
     String(format: String(localized: "arrival_row_a11y_format"), time, origin, operatorName, platform)
   }
 
-  // MARK: - Settings / About
+  // MARK: - Settings
+  static var boardPreferencesSection: String { String(localized: "board_preferences_section") }
+  static var showNonStoppingTrains: String { String(localized: "show_non_stopping_trains") }
+  static var showNonStoppingTrainsFooter: String { String(localized: "show_non_stopping_trains_footer") }
   static var aboutSection: String { String(localized: "about_section") }
   static var aboutAttribution: String { String(localized: "about_attribution") }
   static var aboutFeedbackWelcome: String { String(localized: "about_feedback_welcome") }

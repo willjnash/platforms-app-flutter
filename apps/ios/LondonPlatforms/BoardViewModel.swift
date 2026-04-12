@@ -5,11 +5,13 @@ import Observation
 @MainActor
 final class BoardViewModel {
   private(set) var services: [ServiceSummary] = []
+  private(set) var systemStatus: SystemStatus?
   var isLoading = false
   var errorMessage: String?
   var lastRefreshLabel: String?
   var showingArrivals = false
   var filterTimeHHmm: String?
+  var filterToCRS: String?      // CRS of the "towards" station filter
 
   var stationCRS: String
   var stationDesc: String
@@ -19,10 +21,8 @@ final class BoardViewModel {
   var autoRefreshCountdown: Int = 0
   private var refreshTask: Task<Void, Never>?
 
-  /// True when showing live boards (no time filter).
   var isLive: Bool { filterTimeHHmm == nil }
 
-  /// 0.0–1.0 progress toward next auto-refresh.
   var autoRefreshProgress: Double {
     guard isLive, autoRefreshCountdown > 0 else { return 0 }
     return 1.0 - (Double(autoRefreshCountdown) / Double(Self.refreshIntervalSeconds))
@@ -40,6 +40,7 @@ final class BoardViewModel {
     stationDesc = AppSettings.savedStationDescription
     showingArrivals = AppSettings.savedShowingArrivals
     filterTimeHHmm = AppSettings.savedTimeFilterHHmm
+    filterToCRS = AppSettings.savedFilterToCRS
   }
 
   func applyStation(_ station: Station) {
@@ -52,6 +53,7 @@ final class BoardViewModel {
   func persistBoardPreferences() {
     AppSettings.savedShowingArrivals = showingArrivals
     AppSettings.savedTimeFilterHHmm = filterTimeHHmm
+    AppSettings.savedFilterToCRS = filterToCRS
   }
 
   func load(userInitiated: Bool = false) async {
@@ -62,9 +64,11 @@ final class BoardViewModel {
       let res = try await RTTClient.shared.fetchBoard(
         crs: stationCRS,
         arrivals: showingArrivals,
-        timeHHmm: filterTimeHHmm
+        timeHHmm: filterTimeHHmm,
+        filterToCRS: filterToCRS
       )
       services = res.services ?? []
+      systemStatus = res.systemStatus
       lastRefreshLabel = Self.refreshFormatter.string(from: Date())
       persistBoardPreferences()
       if userInitiated {
@@ -116,16 +120,28 @@ final class BoardViewModel {
   }
 
   func rowIsRenderable(_ item: ServiceSummary) -> Bool {
+    // Hide empty coaching stock and other non-passenger moves
+    if item.inPassengerService == false { return false }
+
     guard let ld = item.locationDetail,
           item.serviceUid != nil,
           item.runDate != nil
     else { return false }
+
     if showingArrivals {
       guard let pub = ld.destination?.first?.publicTime, !pub.isEmpty,
             ld.origin?.first != nil
       else { return false }
       return true
     }
+
+    // Pass-through trains (non-stopping): show only when the setting is on
+    if AppSettings.savedShowNonStoppingTrains,
+       let pass = ld.passHHmm, !pass.isEmpty,
+       ld.destination?.first != nil {
+      return true
+    }
+
     guard let gb = ld.gbttBookedDeparture, !gb.isEmpty,
           ld.destination?.first != nil
     else { return false }

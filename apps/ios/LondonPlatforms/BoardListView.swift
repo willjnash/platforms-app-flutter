@@ -7,6 +7,7 @@ struct BoardListView: View {
 
   @State private var showStationPicker = false
   @State private var showTimePicker = false
+  @State private var showTowardsPicker = false
   @Environment(\.scenePhase) private var scenePhase
 
   var body: some View {
@@ -54,12 +55,11 @@ struct BoardListView: View {
           Text(L10n.arrivals).tag(true)
         }
         .pickerStyle(.segmented)
-        .frame(maxWidth: 220)
         .accessibilityLabel(L10n.boardPickerAccessibility)
       }
 
       ToolbarItemGroup(placement: .topBarTrailing) {
-        timeFilterButton
+        filterMenu
         refreshIndicator
       }
     }
@@ -80,6 +80,10 @@ struct BoardListView: View {
       } else {
         model.stopAutoRefresh()
       }
+    }
+    .onChange(of: model.filterToCRS) { _, _ in
+      model.persistBoardPreferences()
+      Task { await model.load() }
     }
     .onChange(of: scenePhase) { _, newPhase in
       switch newPhase {
@@ -105,67 +109,110 @@ struct BoardListView: View {
     .sheet(isPresented: $showTimePicker) {
       TimeFilterSheet(timeHHmm: $model.filterTimeHHmm)
     }
+    .sheet(isPresented: $showTowardsPicker) {
+      StationPickerSheet(
+        selectedCRS: model.filterToCRS ?? "",
+        onPick: { station in model.filterToCRS = station.crs },
+        title: L10n.towardsFilterTitle
+      )
+    }
   }
 
-  // MARK: - Status section (live indicator + last updated)
+  // MARK: - Status section
 
   private var statusSection: some View {
     Section {
-      HStack(spacing: 8) {
-        if model.isLive {
-          HStack(spacing: 4) {
-            Circle()
-              .fill(.green)
-              .frame(width: 8, height: 8)
-            Text(L10n.liveLabel)
-              .font(.subheadline.weight(.medium))
-              .foregroundStyle(.green)
+      VStack(spacing: 6) {
+        // System status banner
+        if let banner = model.systemStatus?.bannerMessage {
+          HStack(spacing: 6) {
+            Image(systemName: "exclamationmark.circle.fill")
+              .foregroundStyle(.orange)
+              .font(.subheadline)
+            Text(banner)
+              .font(.subheadline)
+              .foregroundStyle(.orange)
+            Spacer()
           }
-          .accessibilityLabel(L10n.liveA11y)
+          .padding(.vertical, 2)
+          .accessibilityLabel(banner)
         }
 
-        Text(model.scheduleContextDescription)
-          .font(.subheadline)
-          .foregroundStyle(.secondary)
+        HStack(spacing: 8) {
+          if model.isLive {
+            HStack(spacing: 4) {
+              Circle()
+                .fill(.green)
+                .frame(width: 8, height: 8)
+              Text(L10n.liveLabel)
+                .font(.subheadline.weight(.medium))
+                .foregroundStyle(.green)
+            }
+            .accessibilityLabel(L10n.liveA11y)
+          }
 
-        Spacer()
+          Text(model.scheduleContextDescription)
+            .font(.subheadline)
+            .foregroundStyle(.secondary)
 
-        if let last = model.lastRefreshLabel {
-          Text(last)
-            .font(.caption)
-            .foregroundStyle(.tertiary)
-            .monospacedDigit()
+          Spacer()
+
+          if let last = model.lastRefreshLabel {
+            Text(last)
+              .font(.caption)
+              .foregroundStyle(.tertiary)
+              .monospacedDigit()
+          }
+        }
+
+        // Active filter chips — shown inline, no extra section gap
+        if hasActiveFilters {
+          HStack(spacing: 8) {
+            if let crs = model.filterToCRS {
+              FilterChip(label: L10n.activeFilterTowards(crs.uppercased())) {
+                model.filterToCRS = nil
+              }
+            }
+            if let hhmm = model.filterTimeHHmm {
+              FilterChip(label: L10n.activeFilterTime(TimeFormatting.displayHHmm(hhmm))) {
+                model.filterTimeHHmm = nil
+              }
+            }
+            Spacer()
+          }
         }
       }
       .listRowBackground(Color.clear)
     }
   }
 
-  // MARK: - Time filter button
+  // MARK: - Filter menu
 
-  @ViewBuilder
-  private var timeFilterButton: some View {
-    if let hhmm = model.filterTimeHHmm {
-      Button {
-        model.filterTimeHHmm = nil
-      } label: {
-        HStack(spacing: 2) {
-          Text(TimeFormatting.displayHHmm(hhmm))
-            .monospacedDigit()
-          Image(systemName: "xmark.circle.fill")
-            .font(.caption)
-            .foregroundStyle(.secondary)
+  private var hasActiveFilters: Bool {
+    model.filterToCRS != nil || model.filterTimeHHmm != nil
+  }
+
+  private var filterMenu: some View {
+    Menu {
+      Button(L10n.filterByDestination, systemImage: "arrowshape.forward") {
+        showTowardsPicker = true
+      }
+      Button(L10n.filterByTime, systemImage: "clock") {
+        showTimePicker = true
+      }
+      if hasActiveFilters {
+        Divider()
+        Button(L10n.clearFilters, systemImage: "xmark.circle", role: .destructive) {
+          model.filterToCRS = nil
+          model.filterTimeHHmm = nil
         }
       }
-      .accessibilityLabel(L10n.clearFilter)
-    } else {
-      Button {
-        showTimePicker = true
-      } label: {
-        Image(systemName: "clock")
-      }
-      .accessibilityLabel(L10n.menuTimeFilter)
+    } label: {
+      Image(systemName: hasActiveFilters
+            ? "line.3.horizontal.decrease.circle.fill"
+            : "line.3.horizontal.decrease.circle")
     }
+    .accessibilityLabel(L10n.filterMenuLabel)
   }
 
   // MARK: - Refresh / live indicator
@@ -245,5 +292,29 @@ struct BoardListView: View {
         Text(model.showingArrivals ? L10n.sectionArrivals : L10n.sectionDepartures)
       }
     }
+  }
+}
+
+// MARK: - Filter chip
+
+private struct FilterChip: View {
+  let label: String
+  let onClear: () -> Void
+
+  var body: some View {
+    Button(action: onClear) {
+      HStack(spacing: 4) {
+        Text(label)
+          .font(.caption.weight(.medium))
+        Image(systemName: "xmark.circle.fill")
+          .font(.caption2)
+          .foregroundStyle(.secondary)
+      }
+      .foregroundStyle(.primary)
+      .padding(.horizontal, 10)
+      .padding(.vertical, 5)
+      .background(Color.secondary.opacity(0.12), in: Capsule())
+    }
+    .buttonStyle(.plain)
   }
 }

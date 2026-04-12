@@ -4,8 +4,18 @@ struct SettingsView: View {
   private let privacyURL = URL(string: "https://platformsapp.wordpress.com/london-platforms-privacy-notice/")!
   private let feedbackURL = URL(string: "mailto:platformfeedback@icloud.com")!
 
+  @AppStorage("savedShowNonStoppingTrains") private var showNonStoppingTrains = false
+
   var body: some View {
     List {
+      Section {
+        Toggle(L10n.showNonStoppingTrains, isOn: $showNonStoppingTrains)
+      } header: {
+        Text(L10n.boardPreferencesSection)
+      } footer: {
+        Text(L10n.showNonStoppingTrainsFooter)
+      }
+
       Section {
         Text(L10n.aboutAttribution)
         Text(L10n.aboutFeedbackWelcome)

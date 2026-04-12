@@ -1,6 +1,28 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "active_filter_time_format" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From %@"
+          }
+        }
+      }
+    },
+    "active_filter_towards_format" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Towards %@"
+          }
+        }
+      }
+    },
     "about_attribution" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -67,6 +89,83 @@
         }
       }
     },
+    "association_divide_from_format" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Divides from %@"
+          }
+        }
+      }
+    },
+    "association_divide_into_format" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Divides into %@"
+          }
+        }
+      }
+    },
+    "association_form_from_format" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Formed from %@"
+          }
+        }
+      }
+    },
+    "association_form_into_format" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Forms into %@"
+          }
+        }
+      }
+    },
+    "association_join_from_format" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joins from %@"
+          }
+        }
+      }
+    },
+    "association_join_into_format" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Joins into %@"
+          }
+        }
+      }
+    },
+    "associations_section" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connections"
+          }
+        }
+      }
+    },
     "board_picker_a11y" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -78,6 +177,17 @@
         }
       }
     },
+    "board_preferences_section" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Board Preferences"
+          }
+        }
+      }
+    },
     "board_section" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -85,6 +195,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Board"
+          }
+        }
+      }
+    },
+    "bus_replacement_badge" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bus"
           }
         }
       }
@@ -166,6 +287,17 @@
         }
       }
     },
+    "clear_filters" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear filters"
+          }
+        }
+      }
+    },
     "clear_filter" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -173,6 +305,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Clear filter"
+          }
+        }
+      }
+    },
+    "clear_towards_filter" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Clear towards filter"
           }
         }
       }
@@ -188,6 +331,39 @@
         }
       }
     },
+    "filter_by_destination" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filter by destination\u2026"
+          }
+        }
+      }
+    },
+    "filter_by_time" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filter by time\u2026"
+          }
+        }
+      }
+    },
+    "filter_menu_label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filters"
+          }
+        }
+      }
+    },
     "delay_a11y_format" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -195,6 +371,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Delayed %d minutes"
+          }
+        }
+      }
+    },
+    "delay_reason_label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Delay reason"
           }
         }
       }
@@ -419,6 +606,17 @@
         }
       }
     },
+    "request_stop_badge" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "R"
+          }
+        }
+      }
+    },
     "rtt_error_decoding" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -529,6 +727,28 @@
         }
       }
     },
+    "show_non_stopping_trains" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Show non-stopping trains"
+          }
+        }
+      }
+    },
+    "show_non_stopping_trains_footer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pass-through trains are shown with a dashed time and no platform."
+          }
+        }
+      }
+    },
     "station_title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -547,6 +767,39 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Stations"
+          }
+        }
+      }
+    },
+    "status_approaching" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Approaching"
+          }
+        }
+      }
+    },
+    "status_arriving" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Arriving"
+          }
+        }
+      }
+    },
+    "status_at_platform" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "At platform"
           }
         }
       }
@@ -573,6 +826,17 @@
         }
       }
     },
+    "status_departing" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Departing"
+          }
+        }
+      }
+    },
     "status_on_time" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -580,6 +844,61 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "On time"
+          }
+        }
+      }
+    },
+    "status_pass_through" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Passes"
+          }
+        }
+      }
+    },
+    "system_status_data_limited" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some realtime data is limited"
+          }
+        }
+      }
+    },
+    "system_status_data_none" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No realtime data available"
+          }
+        }
+      }
+    },
+    "system_status_degraded" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Realtime data degraded — times may be inaccurate"
+          }
+        }
+      }
+    },
+    "system_status_schedule_only" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Schedule data only — no realtime information"
           }
         }
       }
@@ -639,6 +958,28 @@
         }
       }
     },
+    "towards_filter_a11y" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Filter by towards station"
+          }
+        }
+      }
+    },
+    "towards_filter_title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Towards"
+          }
+        }
+      }
+    },
     "train_operator" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -646,6 +987,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Operator"
+          }
+        }
+      }
+    },
+    "vehicles_format" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d coaches"
           }
         }
       }

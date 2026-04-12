@@ -7,6 +7,7 @@ struct ServiceDetailView: View {
   @State private var detail: ServiceDetailResponse?
   @State private var isLoading = false
   @State private var errorMessage: String?
+  @State private var associationToShow: ServiceAssociation?
   @Environment(\.dismiss) private var dismiss
 
   var body: some View {
@@ -42,6 +43,13 @@ struct ServiceDetailView: View {
     .task {
       await load()
     }
+    .sheet(item: $associationToShow) { assoc in
+      if let uid = assoc.serviceUid, let rd = assoc.runDate {
+        ServiceDetailView(serviceUid: uid, runDate: rd)
+          .presentationDragIndicator(.visible)
+          .presentationDetents([.medium, .large])
+      }
+    }
   }
 
   private func detailList(_ d: ServiceDetailResponse) -> some View {
@@ -51,7 +59,11 @@ struct ServiceDetailView: View {
       guard let originTime, let destName else { return nil }
       return "\(TimeFormatting.displayHHmm(originTime)) to \(destName)"
     }()
-    let callingPoints = Self.callingPointRows(from: d.locations, originDescription: d.origin?.first?.description)
+    let callingPoints = Self.callingPointRows(
+      from: d.locations,
+      originDescription: d.origin?.first?.description
+    )
+    let associations = Self.allAssociations(from: d.locations)
 
     return List {
       Section {
@@ -67,6 +79,13 @@ struct ServiceDetailView: View {
         LabeledContent(L10n.trainOperator) {
           Text(d.atocName ?? L10n.emDash)
         }
+        if let reason = d.delayReason {
+          LabeledContent(L10n.delayReasonLabel) {
+            Text(reason)
+              .foregroundStyle(.orange)
+              .multilineTextAlignment(.trailing)
+          }
+        }
       }
 
       Section(L10n.callingPoints) {
@@ -76,6 +95,19 @@ struct ServiceDetailView: View {
         } else {
           ForEach(callingPoints) { row in
             CallingPointRowView(row: row)
+          }
+        }
+      }
+
+      if !associations.isEmpty {
+        Section(L10n.associationsSection) {
+          ForEach(associations) { assoc in
+            Button {
+              associationToShow = assoc
+            } label: {
+              AssociationRowView(association: assoc)
+            }
+            .tint(.primary)
           }
         }
       }
@@ -115,11 +147,24 @@ struct ServiceDetailView: View {
           platform: item.platform,
           platformConfirmed: item.platformConfirmed == true,
           towardDestination: toward,
-          isCancelled: isCancelled
+          isCancelled: isCancelled,
+          isRequestStop: item.isRequestStop == true,
+          delayReason: (isCancelled || (realtimeArrival != nil && realtimeArrival != rawArrival))
+            ? item.delayReason : nil
         )
       )
     }
     return rows
+  }
+
+  /// Collects all public associations across every calling point.
+  private static func allAssociations(from locations: [ServiceLocation]?) -> [ServiceAssociation] {
+    guard let locations else { return [] }
+    var seen = Set<String>()
+    return locations.flatMap { $0.associations }.filter { assoc in
+      guard assoc.isPublic else { return false }
+      return seen.insert(assoc.id).inserted
+    }
   }
 
   private func load() async {
@@ -145,6 +190,8 @@ private struct CallingPointRow: Identifiable {
   let platformConfirmed: Bool
   let towardDestination: String?
   let isCancelled: Bool
+  let isRequestStop: Bool
+  let delayReason: String?
 }
 
 private struct CallingPointRowView: View {
@@ -153,15 +200,32 @@ private struct CallingPointRowView: View {
   var body: some View {
     HStack(spacing: 12) {
       VStack(alignment: .leading, spacing: 2) {
-        Text(row.stationName)
-          .font(.body)
-          .foregroundStyle(row.isCancelled ? .secondary : .primary)
-          .strikethrough(row.isCancelled)
+        HStack(spacing: 4) {
+          Text(row.stationName)
+            .font(.body)
+            .foregroundStyle(row.isCancelled ? .secondary : .primary)
+            .strikethrough(row.isCancelled)
+
+          if row.isRequestStop {
+            Text(L10n.requestStopBadge)
+              .font(.caption2.weight(.semibold))
+              .foregroundStyle(.teal)
+              .padding(.horizontal, 4)
+              .padding(.vertical, 1)
+              .background(Color.teal.opacity(0.12), in: Capsule())
+          }
+        }
 
         if let toward = row.towardDestination {
           Text(L10n.callingPointToward(toward))
             .font(.caption)
             .foregroundStyle(.tertiary)
+        }
+
+        if let reason = row.delayReason, !row.isCancelled {
+          Text(reason)
+            .font(.caption)
+            .foregroundStyle(.orange)
         }
       }
       .frame(maxWidth: .infinity, alignment: .leading)
@@ -194,5 +258,58 @@ private struct CallingPointRowView: View {
         toward: row.towardDestination
       )
     )
+  }
+}
+
+// MARK: - Associations
+
+private struct AssociationRowView: View {
+  let association: ServiceAssociation
+
+  var body: some View {
+    HStack(spacing: 10) {
+      Image(systemName: associationIcon)
+        .foregroundStyle(.secondary)
+        .frame(width: 20)
+
+      VStack(alignment: .leading, spacing: 2) {
+        Text(associationLabel)
+          .font(.body)
+
+        if let op = association.operatorName {
+          Text(op)
+            .font(.caption)
+            .foregroundStyle(.secondary)
+        }
+      }
+
+      Spacer()
+
+      Image(systemName: "chevron.right")
+        .font(.caption)
+        .foregroundStyle(.tertiary)
+    }
+  }
+
+  private var associationIcon: String {
+    switch association.type {
+    case "JOIN_FROM", "JOIN_INTO": return "arrow.triangle.merge"
+    case "DIVIDE_INTO", "DIVIDE_FROM": return "arrow.triangle.branch"
+    case "FORM_INTO", "FORM_FROM": return "arrow.right"
+    default: return "arrow.right"
+    }
+  }
+
+  private var associationLabel: String {
+    let headcode = association.headcode ?? association.serviceUid ?? L10n.emDash
+    switch association.type {
+    case "JOIN_FROM": return L10n.associationJoinFrom(headcode)
+    case "JOIN_INTO": return L10n.associationJoinInto(headcode)
+    case "DIVIDE_INTO": return L10n.associationDivideInto(headcode)
+    case "DIVIDE_FROM": return L10n.associationDivideFrom(headcode)
+    case "FORM_INTO": return L10n.associationFormInto(headcode)
+    case "FORM_FROM": return L10n.associationFormFrom(headcode)
+    default: return headcode
+    }
   }
 }
