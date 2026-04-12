@@ -51,7 +51,7 @@ struct ServiceDetailView: View {
       guard let originTime, let destName else { return nil }
       return "\(TimeFormatting.displayHHmm(originTime)) to \(destName)"
     }()
-    let callingPoints = Self.callingPointRows(from: d.locations)
+    let callingPoints = Self.callingPointRows(from: d.locations, originDescription: d.origin?.first?.description)
 
     return List {
       Section {
@@ -86,17 +86,18 @@ struct ServiceDetailView: View {
     }
   }
 
-  private static func callingPointRows(from locations: [ServiceLocation]?) -> [CallingPointRow] {
+  private static func callingPointRows(
+    from locations: [ServiceLocation]?,
+    originDescription: String?
+  ) -> [CallingPointRow] {
     guard let locations else { return [] }
     var rows: [CallingPointRow] = []
     for (index, item) in locations.enumerated() {
       guard item.isPublicCall == true else { continue }
-      guard let originFirst = item.origin?.first?.description,
-            let desc = item.description,
-            originFirst != desc else { continue }
+      guard let desc = item.description, desc != originDescription else { continue }
       guard let rawArrival = item.gbttBookedArrival else { continue }
 
-      let isCancelled = item.displayAs == "CANCELLED_CALL"
+      let isCancelled = item.displayAs == "CANCELLED"
       let realtimeArrival = item.realtimeArrival
       let expectedDiffers = realtimeArrival != nil && realtimeArrival != rawArrival
 

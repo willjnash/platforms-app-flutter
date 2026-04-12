@@ -26,7 +26,7 @@ extension ServiceRows {
 
     private var confirmed: Bool { locationDetail.platformConfirmed == true }
     private var changed: Bool { locationDetail.platformChanged == true }
-    private var isCancelled: Bool { locationDetail.displayAs == "CANCELLED_CALL" }
+    private var isCancelled: Bool { locationDetail.displayAs == "CANCELLED" }
 
     private var delayMinutes: Int? {
       TimeUtils.delayMinutes(
@@ -136,7 +136,7 @@ extension ServiceRows {
       return TimeFormatting.displayHHmm(rt)
     }
 
-    private var isCancelled: Bool { locationDetail.displayAs == "CANCELLED_CALL" }
+    private var isCancelled: Bool { locationDetail.displayAs == "CANCELLED" }
 
     private var delayMinutes: Int? {
       TimeUtils.delayMinutes(

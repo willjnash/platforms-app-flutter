@@ -1,5 +1,5 @@
 // Default: no credentials (app shows setup instructions).
 // Optional: add apps/ios/LocalSecrets.xcconfig (gitignored) with:
-//   RTT_BASIC_AUTH_HEADER = Basic <base64(username:password)>
-RTT_BASIC_AUTH_HEADER =
+//   RTT_BEARER_TOKEN = <JWT token>
+RTT_BEARER_TOKEN =
 #include? "LocalSecrets.xcconfig"

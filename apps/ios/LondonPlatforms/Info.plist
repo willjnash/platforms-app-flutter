@@ -22,8 +22,8 @@
 	<string>1</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
-	<key>RTTBasicAuthHeader</key>
-	<string>$(RTT_BASIC_AUTH_HEADER)</string>
+	<key>RTTBearerToken</key>
+	<string>$(RTT_BEARER_TOKEN)</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
