@@ -49,6 +49,8 @@ enum L10n {
   static var statusArriving: String { String(localized: "status_arriving") }
   static var statusAtPlatform: String { String(localized: "status_at_platform") }
   static var statusDeparting: String { String(localized: "status_departing") }
+  static var statusDepartPreparing: String { String(localized: "status_depart_preparing") }
+  static var statusDepartReady: String { String(localized: "status_depart_ready") }
 
   // MARK: - System status banner
   static var systemStatusDegraded: String { String(localized: "system_status_degraded") }
@@ -79,6 +81,36 @@ enum L10n {
   // MARK: - Stations
   static var stationTitle: String { String(localized: "station_title") }
   static var stationsTitle: String { String(localized: "stations_title") }
+  static var stationNearMeSection: String {
+    String(localized: "station_near_me_section", defaultValue: "Near Me")
+  }
+  static var stationNearMeAction: String {
+    String(localized: "station_near_me_action", defaultValue: "Find nearby stations")
+  }
+  static var stationNearMeDenied: String {
+    String(
+      localized: "station_near_me_denied",
+      defaultValue: "Location access is off. Enable it in Settings to find nearby stations."
+    )
+  }
+  static var stationNearMeRestricted: String {
+    String(
+      localized: "station_near_me_restricted",
+      defaultValue: "Location is restricted on this device."
+    )
+  }
+  static var stationNearMeUnavailable: String {
+    String(
+      localized: "station_near_me_unavailable",
+      defaultValue: "Could not get your current location."
+    )
+  }
+  static var stationNearMeDistanceMeters: String {
+    String(localized: "station_near_me_distance_meters", defaultValue: "%d m away")
+  }
+  static var stationNearMeDistanceKilometers: String {
+    String(localized: "station_near_me_distance_kilometers", defaultValue: "%.1f km away")
+  }
 
   // MARK: - Time filter
   static var timeFilterTitle: String { String(localized: "time_filter_title") }
@@ -105,10 +137,30 @@ enum L10n {
     String(format: String(localized: "calling_point_toward_format"), destination)
   }
   static func callingPointRowAccessibility(station: String, time: String, toward: String?) -> String {
-    let base = String(format: String(localized: "calling_point_row_a11y_format"), station, time)
-    guard let toward else { return base }
-    return base + ". " + String(format: String(localized: "calling_point_row_a11y_continues_format"), toward)
+    callingPointRowAccessibility(station: station, time: time, toward: toward, progress: nil)
   }
+
+  static func callingPointRowAccessibility(
+    station: String,
+    time: String,
+    toward: String?,
+    progress: CallingPointProgress?
+  ) -> String {
+    var base = String(format: String(localized: "calling_point_row_a11y_format"), station, time)
+    if let toward {
+      base += ". " + String(format: String(localized: "calling_point_row_a11y_continues_format"), toward)
+    }
+    if let progress, let phrase = CallingPointProgress.accessibilityPhrase(for: progress) {
+      base += ". " + phrase
+    }
+    return base
+  }
+
+  static var callingPointProgressNext: String { String(localized: "calling_point_progress_next") }
+  static var callingPointHere: String { String(localized: "calling_point_here") }
+  static var callingPointProgressPassedA11y: String { String(localized: "calling_point_progress_passed_a11y") }
+  static var callingPointProgressCurrentA11y: String { String(localized: "calling_point_progress_current_a11y") }
+  static var callingPointProgressNextA11y: String { String(localized: "calling_point_progress_next_a11y") }
 
   // MARK: - Request stop
   static var requestStopBadge: String { String(localized: "request_stop_badge") }
@@ -148,6 +200,21 @@ enum L10n {
   }
   static var platformChangedA11y: String { String(localized: "platform_changed_a11y") }
   static var changedBadge: String { String(localized: "changed_badge") }
+  static var platformConfidenceChanged: String {
+    String(localized: "platform_confidence_changed", defaultValue: "Platform changed")
+  }
+  static var platformConfidenceConfirmed: String {
+    String(localized: "platform_confidence_confirmed", defaultValue: "Platform confirmed")
+  }
+  static var platformConfidenceExpected: String {
+    String(localized: "platform_confidence_expected", defaultValue: "Expected platform")
+  }
+  static var platformConfidencePending: String {
+    String(localized: "platform_confidence_pending", defaultValue: "Confirmation soon")
+  }
+  static var platformConfidenceUnavailable: String {
+    String(localized: "platform_confidence_unavailable", defaultValue: "Platform not yet available")
+  }
   static func delayA11y(_ minutes: Int) -> String {
     String(format: String(localized: "delay_a11y_format"), minutes)
   }

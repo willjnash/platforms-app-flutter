@@ -162,6 +162,27 @@ final class RTTClient {
       struct Stop: Decodable {
         let description: String?
         let shortCode: String?
+        let latitude: Double?
+        let longitude: Double?
+
+        private enum CodingKeys: String, CodingKey {
+          case description
+          case shortCode
+          case latitude
+          case longitude
+          case lat
+          case lon
+        }
+
+        init(from decoder: Decoder) throws {
+          let container = try decoder.container(keyedBy: CodingKeys.self)
+          description = try container.decodeIfPresent(String.self, forKey: .description)
+          shortCode = try container.decodeIfPresent(String.self, forKey: .shortCode)
+          latitude = try container.decodeIfPresent(Double.self, forKey: .latitude)
+            ?? container.decodeIfPresent(Double.self, forKey: .lat)
+          longitude = try container.decodeIfPresent(Double.self, forKey: .longitude)
+            ?? container.decodeIfPresent(Double.self, forKey: .lon)
+        }
       }
       let stops: [Stop]
     }
@@ -169,7 +190,12 @@ final class RTTClient {
     let stations = parsed.stops.compactMap { stop -> Station? in
       guard let crs = stop.shortCode, !crs.isEmpty,
             let name = stop.description, !name.isEmpty else { return nil }
-      return Station(crs: crs, displayName: name)
+      return Station(
+        crs: crs,
+        displayName: name,
+        latitude: stop.latitude,
+        longitude: stop.longitude
+      )
     }
     .sorted { $0.displayName < $1.displayName }
     StationCatalog.updateCache(stations)

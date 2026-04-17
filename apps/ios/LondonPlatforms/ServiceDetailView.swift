@@ -1,8 +1,16 @@
 import SwiftUI
 
+/// Snapshot of the board row used to open service detail, so the headline time matches the list.
+struct ServiceDetailBoardContext: Hashable {
+  let locationDetail: LocationDetail
+  let showingArrivals: Bool
+}
+
 struct ServiceDetailView: View {
   let serviceUid: String
   let runDate: String
+  /// When set (normal board tap), headline time matches the board row; `nil` for nested association sheets.
+  let boardContext: ServiceDetailBoardContext?
 
   @State private var detail: ServiceDetailResponse?
   @State private var isLoading = false
@@ -45,24 +53,37 @@ struct ServiceDetailView: View {
     }
     .sheet(item: $associationToShow) { assoc in
       if let uid = assoc.serviceUid, let rd = assoc.runDate {
-        ServiceDetailView(serviceUid: uid, runDate: rd)
+        ServiceDetailView(serviceUid: uid, runDate: rd, boardContext: nil)
           .presentationDragIndicator(.visible)
           .presentationDetents([.medium, .large])
       }
     }
   }
 
+  init(serviceUid: String, runDate: String, boardContext: ServiceDetailBoardContext? = nil) {
+    self.serviceUid = serviceUid
+    self.runDate = runDate
+    self.boardContext = boardContext
+  }
+
   private func detailList(_ d: ServiceDetailResponse) -> some View {
-    let originTime = d.origin?.first?.publicTime
     let destName = d.destination?.first?.description
-    let headline: String? = {
-      guard let originTime, let destName else { return nil }
-      return "\(TimeFormatting.displayHHmm(originTime)) to \(destName)"
+    let callingPoints = Self.callingPointRows(from: d.locations)
+    let headlineTime: String? = {
+      if let boardContext {
+        return Self.boardPrimaryTime(
+          locationDetail: boardContext.locationDetail,
+          showingArrivals: boardContext.showingArrivals
+        )
+      }
+      return callingPoints.first { $0.progress == .current }?.arrivalDisplay
+        ?? callingPoints.first { $0.progress == .next }?.arrivalDisplay
+        ?? callingPoints.first?.arrivalDisplay
     }()
-    let callingPoints = Self.callingPointRows(
-      from: d.locations,
-      originDescription: d.origin?.first?.description
-    )
+    let headline: String? = {
+      guard let headlineTime, let destName else { return nil }
+      return "\(headlineTime) to \(destName)"
+    }()
     let associations = Self.allAssociations(from: d.locations)
 
     return List {
@@ -95,6 +116,7 @@ struct ServiceDetailView: View {
         } else {
           ForEach(callingPoints) { row in
             CallingPointRowView(row: row)
+              .callingPointCurrentRowBackground(isCurrent: row.progress == .current)
           }
         }
       }
@@ -118,43 +140,81 @@ struct ServiceDetailView: View {
     }
   }
 
-  private static func callingPointRows(
-    from locations: [ServiceLocation]?,
-    originDescription: String?
-  ) -> [CallingPointRow] {
+  /// Primary clock time shown on the board for this row (matches `ServiceRows.Departure` / `ServiceRows.Arrival`).
+  private static func boardPrimaryTime(locationDetail: LocationDetail, showingArrivals: Bool) -> String {
+    if showingArrivals {
+      return TimeFormatting.displayHHmm(locationDetail.destination?.first?.publicTime)
+    }
+    return TimeFormatting.displayHHmm(locationDetail.gbttBookedDeparture ?? locationDetail.passHHmm)
+  }
+
+  private static func callingPointRows(from locations: [ServiceLocation]?) -> [CallingPointRow] {
     guard let locations else { return [] }
-    var rows: [CallingPointRow] = []
+    struct Built {
+      let id: String
+      let loc: ServiceLocation
+      let stationName: String
+      let arrivalDisplay: String
+      let expectedArrivalDisplay: String?
+      let platform: String?
+      let platformConfirmed: Bool
+      let towardDestination: String?
+      let isCancelled: Bool
+      let isRequestStop: Bool
+      let delayReason: String?
+      let primaryRealtimeStatus: String?
+    }
+    var built: [Built] = []
     for (index, item) in locations.enumerated() {
       guard item.isPublicCall == true else { continue }
-      guard let desc = item.description, desc != originDescription else { continue }
-      guard let rawArrival = item.gbttBookedArrival else { continue }
+      guard let desc = item.description else { continue }
+      guard let rawBooked = item.gbttBookedArrival ?? item.gbttBookedDeparture else { continue }
 
       let isCancelled = item.displayAs == "CANCELLED"
-      let realtimeArrival = item.realtimeArrival
-      let expectedDiffers = realtimeArrival != nil && realtimeArrival != rawArrival
+      let realtime = item.realtimeArrival ?? item.realtimeDeparture
+      let expectedDiffers = realtime != nil && realtime != rawBooked
 
       let toward: String? = {
         guard let destFirst = item.destination?.first?.description, destFirst != desc else { return nil }
         return destFirst
       }()
 
-      rows.append(
-        CallingPointRow(
-          id: "\(index)-\(desc)-\(rawArrival)",
+      built.append(
+        Built(
+          id: "\(index)-\(desc)-\(rawBooked)",
+          loc: item,
           stationName: desc,
-          arrivalDisplay: TimeFormatting.displayHHmm(rawArrival),
-          expectedArrivalDisplay: expectedDiffers ? TimeFormatting.displayHHmm(realtimeArrival) : nil,
+          arrivalDisplay: TimeFormatting.displayHHmm(rawBooked),
+          expectedArrivalDisplay: expectedDiffers ? TimeFormatting.displayHHmm(realtime) : nil,
           platform: item.platform,
           platformConfirmed: item.platformConfirmed == true,
           towardDestination: toward,
           isCancelled: isCancelled,
           isRequestStop: item.isRequestStop == true,
-          delayReason: (isCancelled || (realtimeArrival != nil && realtimeArrival != rawArrival))
-            ? item.delayReason : nil
+          delayReason: (isCancelled || (realtime != nil && realtime != rawBooked))
+            ? item.delayReason : nil,
+          primaryRealtimeStatus: item.departureStatus ?? item.arrivalStatus
         )
       )
     }
-    return rows
+
+    let progresses = CallingPointProgress.values(for: built.map(\.loc))
+    return zip(built, progresses).map { b, progress in
+      CallingPointRow(
+        id: b.id,
+        stationName: b.stationName,
+        arrivalDisplay: b.arrivalDisplay,
+        expectedArrivalDisplay: b.expectedArrivalDisplay,
+        platform: b.platform,
+        platformConfirmed: b.platformConfirmed,
+        towardDestination: b.towardDestination,
+        isCancelled: b.isCancelled,
+        isRequestStop: b.isRequestStop,
+        delayReason: b.delayReason,
+        primaryRealtimeStatus: b.primaryRealtimeStatus,
+        progress: progress
+      )
+    }
   }
 
   /// Collects all public associations across every calling point.
@@ -192,18 +252,38 @@ private struct CallingPointRow: Identifiable {
   let isCancelled: Bool
   let isRequestStop: Bool
   let delayReason: String?
+  let primaryRealtimeStatus: String?
+  let progress: CallingPointProgress
 }
 
 private struct CallingPointRowView: View {
   let row: CallingPointRow
 
+  private var stationForeground: Color {
+    if row.isCancelled { return .secondary }
+    if row.progress == .passed { return .secondary }
+    return .primary
+  }
+
+  private var showsLiveStatusChip: Bool {
+    guard let s = row.primaryRealtimeStatus else { return false }
+    return [
+      "APPROACHING", "ARRIVING", "AT_PLATFORM", "DEPARTING",
+      "DEPART_PREPARING", "DEPART_READY",
+    ].contains(s)
+  }
+
   var body: some View {
-    HStack(spacing: 12) {
+    HStack(alignment: .top, spacing: 10) {
+      progressLeading
+        .frame(width: 26, alignment: .center)
+        .padding(.top, 2)
+
       VStack(alignment: .leading, spacing: 2) {
         HStack(spacing: 4) {
           Text(row.stationName)
             .font(.body)
-            .foregroundStyle(row.isCancelled ? .secondary : .primary)
+            .foregroundStyle(stationForeground)
             .strikethrough(row.isCancelled)
 
           if row.isRequestStop {
@@ -220,6 +300,18 @@ private struct CallingPointRowView: View {
           Text(L10n.callingPointToward(toward))
             .font(.caption)
             .foregroundStyle(.tertiary)
+        }
+
+        if row.progress == .current && !row.isCancelled {
+          HStack(spacing: 4) {
+            if showsLiveStatusChip {
+              LiveStatusChip(liveStatus: row.primaryRealtimeStatus)
+            } else {
+              CapsuleBadge(text: L10n.callingPointHere, style: .green)
+            }
+          }
+        } else if row.progress == .next && !row.isCancelled {
+          CapsuleBadge(text: L10n.callingPointProgressNext, style: .blue)
         }
 
         if let reason = row.delayReason, !row.isCancelled {
@@ -255,9 +347,35 @@ private struct CallingPointRowView: View {
       L10n.callingPointRowAccessibility(
         station: row.stationName,
         time: row.arrivalDisplay,
-        toward: row.towardDestination
+        toward: row.towardDestination,
+        progress: row.progress
       )
     )
+  }
+
+  @ViewBuilder
+  private var progressLeading: some View {
+    switch row.progress {
+    case .current:
+      Image(systemName: "train.side.front.car")
+        .font(.title3)
+        .foregroundStyle(.green)
+        .accessibilityHidden(true)
+    case .next:
+      Image(systemName: "arrow.forward.circle.fill")
+        .font(.title3)
+        .foregroundStyle(.blue)
+        .accessibilityHidden(true)
+    case .passed:
+      Image(systemName: "checkmark.circle.fill")
+        .font(.caption)
+        .foregroundStyle(.tertiary)
+        .accessibilityHidden(true)
+    case .upcoming:
+      Color.clear
+        .frame(width: 1, height: 1)
+        .accessibilityHidden(true)
+    }
   }
 }
 
@@ -310,6 +428,19 @@ private struct AssociationRowView: View {
     case "FORM_INTO": return L10n.associationFormInto(headcode)
     case "FORM_FROM": return L10n.associationFormFrom(headcode)
     default: return headcode
+    }
+  }
+}
+
+// MARK: - List row styling
+
+private extension View {
+  @ViewBuilder
+  func callingPointCurrentRowBackground(isCurrent: Bool) -> some View {
+    if isCurrent {
+      self.listRowBackground(Color.green.opacity(0.10))
+    } else {
+      self
     }
   }
 }

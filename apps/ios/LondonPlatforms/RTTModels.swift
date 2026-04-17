@@ -324,6 +324,12 @@ struct ServiceLocation {
   let gbttBookedDeparture: String?
   let realtimeArrival: String?
   let realtimeDeparture: String?
+  let realtimeArrivalActual: Bool
+  let realtimeDepartureActual: Bool
+  let arrivalStatus: String?
+  let departureStatus: String?
+  let arrivalLatenessMinutes: Int?
+  let departureLatenessMinutes: Int?
   let platform: String?
   let platformConfirmed: Bool?
   let displayAs: String?
@@ -344,6 +350,12 @@ struct ServiceLocation {
     gbttBookedDeparture = TimeFormatting.hhmmFromISO(td?.departure?.scheduleAdvertised)
     realtimeArrival = TimeFormatting.hhmmFromISO(td?.arrival?.realtimeActual ?? td?.arrival?.realtimeForecast)
     realtimeDeparture = TimeFormatting.hhmmFromISO(td?.departure?.realtimeActual ?? td?.departure?.realtimeForecast)
+    realtimeArrivalActual = td?.arrival?.realtimeActual != nil
+    realtimeDepartureActual = td?.departure?.realtimeActual != nil
+    arrivalStatus = td?.arrival?.status
+    departureStatus = td?.departure?.status
+    arrivalLatenessMinutes = td?.arrival?.realtimeAdvertisedLateness
+    departureLatenessMinutes = td?.departure?.realtimeAdvertisedLateness
 
     let platformActual = wire.locationMetadata?.platform?.actual
     let platformPlanned = wire.locationMetadata?.platform?.planned

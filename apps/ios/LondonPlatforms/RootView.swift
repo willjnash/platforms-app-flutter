@@ -40,7 +40,13 @@ private struct BoardTab: View {
       }
       .sheet(item: $selectedService) { service in
         if let uid = service.serviceUid, let rd = service.runDate {
-          ServiceDetailView(serviceUid: uid, runDate: rd)
+          ServiceDetailView(
+            serviceUid: uid,
+            runDate: rd,
+            boardContext: service.locationDetail.map {
+              ServiceDetailBoardContext(locationDetail: $0, showingArrivals: model.showingArrivals)
+            }
+          )
             .presentationDragIndicator(.visible)
             .presentationDetents([.medium, .large])
         }
@@ -54,7 +60,13 @@ private struct BoardTab: View {
         }
         .sheet(item: $selectedService) { service in
           if let uid = service.serviceUid, let rd = service.runDate {
-            ServiceDetailView(serviceUid: uid, runDate: rd)
+            ServiceDetailView(
+              serviceUid: uid,
+              runDate: rd,
+              boardContext: service.locationDetail.map {
+                ServiceDetailBoardContext(locationDetail: $0, showingArrivals: model.showingArrivals)
+              }
+            )
               .presentationDragIndicator(.visible)
               .presentationDetents([.medium, .large])
           }

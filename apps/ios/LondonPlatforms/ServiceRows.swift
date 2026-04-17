@@ -32,6 +32,9 @@ extension ServiceRows {
     private var confirmed: Bool { locationDetail.platformConfirmed == true }
     private var changed: Bool { locationDetail.platformChanged == true }
     private var isCancelled: Bool { locationDetail.displayAs == "CANCELLED" }
+    private var minutesToDeparture: Int? {
+      TimeUtils.minutesUntil(targetHHmm: locationDetail.gbttBookedDeparture)
+    }
 
     private var delayMinutes: Int? {
       if let server = locationDetail.departureLatenessMinutes { return server }
@@ -47,6 +50,19 @@ extension ServiceRows {
       if let delay = delayMinutes, delay > 0 { return .delayed(delay) }
       if locationDetail.realtimeActivated == true { return .onTime }
       return .scheduled
+    }
+
+    private var platformConfidence: PlatformConfidence {
+      if isCancelled || isPassThrough { return .none }
+      if changed { return .changed }
+      if confirmed { return .confirmed }
+      if let p = locationDetail.platform, !p.isEmpty {
+        if let mins = minutesToDeparture, mins <= 10 {
+          return .pending
+        }
+        return .expected
+      }
+      return .unavailable
     }
 
     var body: some View {
@@ -83,7 +99,8 @@ extension ServiceRows {
           // Line 3: status badges — only when something noteworthy to show
           let hasLine3 = status != .onTime && status != .scheduled
             || locationDetail.departureStatus != nil
-            || isBusReplacement || changed
+            || isBusReplacement
+            || platformConfidence.chip != nil
           if hasLine3 {
             HStack(spacing: 4) {
               StatusBadge(status: status)
@@ -91,9 +108,13 @@ extension ServiceRows {
               if isBusReplacement {
                 CapsuleBadge(text: L10n.busReplacementBadge, style: .purple)
               }
-              if changed {
-                CapsuleBadge(text: L10n.changedBadge, style: .orange)
-                  .accessibilityLabel(L10n.platformChangedA11y)
+              if let chip = platformConfidence.chip {
+                CapsuleBadge(
+                  text: chip.text,
+                  style: chip.style,
+                  foregroundOverride: chip.usesPrimaryText ? Color.primary : nil
+                )
+                  .accessibilityLabel(chip.accessibilityLabel)
               }
             }
           }
@@ -148,6 +169,8 @@ extension ServiceRows {
       }
       if confirmed, let p = locationDetail.platform, !p.isEmpty {
         parts.append(L10n.platformConfirmedA11y(p))
+      } else {
+        parts.append(platformConfidence.accessibilityLabel)
       }
       return parts.joined(separator: ". ")
     }
@@ -296,6 +319,81 @@ enum ServiceStatus: Equatable {
   }
 }
 
+private enum PlatformConfidence {
+  case none
+  case changed
+  case confirmed
+  case expected
+  case pending
+  case unavailable
+
+  struct Chip {
+    let text: String
+    let style: CapsuleBadge.BadgeStyle
+    let accessibilityLabel: String
+    let usesPrimaryText: Bool
+  }
+
+  var accessibilityLabel: String {
+    switch self {
+    case .none:
+      return ""
+    case .changed:
+      return L10n.platformChangedA11y
+    case .confirmed:
+      return L10n.platformConfidenceConfirmed
+    case .expected:
+      return L10n.platformConfidenceExpected
+    case .pending:
+      return L10n.platformConfidencePending
+    case .unavailable:
+      return L10n.platformConfidenceUnavailable
+    }
+  }
+
+  var chip: Chip? {
+    switch self {
+    case .none:
+      return nil
+    case .changed:
+      return Chip(
+        text: L10n.platformConfidenceChanged,
+        style: .orange,
+        accessibilityLabel: L10n.platformChangedA11y,
+        usesPrimaryText: true
+      )
+    case .confirmed:
+      return Chip(
+        text: L10n.platformConfidenceConfirmed,
+        style: .green,
+        accessibilityLabel: L10n.platformConfidenceConfirmed,
+        usesPrimaryText: true
+      )
+    case .expected:
+      return Chip(
+        text: L10n.platformConfidenceExpected,
+        style: .secondary,
+        accessibilityLabel: L10n.platformConfidenceExpected,
+        usesPrimaryText: false
+      )
+    case .pending:
+      return Chip(
+        text: L10n.platformConfidencePending,
+        style: .yellow,
+        accessibilityLabel: L10n.platformConfidencePending,
+        usesPrimaryText: false
+      )
+    case .unavailable:
+      return Chip(
+        text: L10n.platformConfidenceUnavailable,
+        style: .secondary,
+        accessibilityLabel: L10n.platformConfidenceUnavailable,
+        usesPrimaryText: false
+      )
+    }
+  }
+}
+
 // MARK: - Status badge
 
 private struct StatusBadge: View {
@@ -333,6 +431,10 @@ struct LiveStatusChip: View {
       return AnyView(CapsuleBadge(text: L10n.statusAtPlatform, style: .green))
     case "DEPARTING":
       return AnyView(CapsuleBadge(text: L10n.statusDeparting, style: .blue))
+    case "DEPART_PREPARING":
+      return AnyView(CapsuleBadge(text: L10n.statusDepartPreparing, style: .blue))
+    case "DEPART_READY":
+      return AnyView(CapsuleBadge(text: L10n.statusDepartReady, style: .green))
     default:
       return AnyView(EmptyView())
     }
@@ -344,6 +446,13 @@ struct LiveStatusChip: View {
 struct CapsuleBadge: View {
   let text: String
   let style: BadgeStyle
+  let foregroundOverride: Color?
+
+  init(text: String, style: BadgeStyle, foregroundOverride: Color? = nil) {
+    self.text = text
+    self.style = style
+    self.foregroundOverride = foregroundOverride
+  }
 
   enum BadgeStyle {
     case green, orange, red, yellow, blue, purple, secondary
@@ -353,7 +462,7 @@ struct CapsuleBadge: View {
       case .green: .green
       case .orange: .orange
       case .red: .red
-      case .yellow: .yellow
+      case .yellow: .primary
       case .blue: .blue
       case .purple: .purple
       case .secondary: .secondary
@@ -365,7 +474,7 @@ struct CapsuleBadge: View {
       case .green: Color.green.opacity(0.12)
       case .orange: Color.orange.opacity(0.12)
       case .red: Color.red.opacity(0.12)
-      case .yellow: Color.yellow.opacity(0.12)
+      case .yellow: Color.yellow.opacity(0.28)
       case .blue: Color.blue.opacity(0.12)
       case .purple: Color.purple.opacity(0.12)
       case .secondary: Color.secondary.opacity(0.1)
@@ -376,7 +485,7 @@ struct CapsuleBadge: View {
   var body: some View {
     Text(text)
       .font(.caption2.weight(.semibold))
-      .foregroundStyle(style.foreground)
+      .foregroundStyle(foregroundOverride ?? style.foreground)
       .padding(.horizontal, 6)
       .padding(.vertical, 2)
       .background(style.background, in: Capsule())

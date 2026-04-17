@@ -46,5 +46,7 @@
 	</array>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>We use your location to suggest nearby railway stations in the station picker.</string>
 </dict>
 </plist>

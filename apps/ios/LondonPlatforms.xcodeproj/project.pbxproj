@@ -27,6 +27,7 @@
 		LPB018 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = LPF021 /* Localizable.xcstrings */; };
 		LPB019 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = LPF022 /* PrivacyInfo.xcprivacy */; };
 		LPB021 /* TimeUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF024 /* TimeUtils.swift */; };
+		LPB022 /* CallingPointProgress.swift in Sources */ = {isa = PBXBuildFile; fileRef = LPF023 /* CallingPointProgress.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -53,6 +54,7 @@
 		LPF021 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		LPF022 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		LPF024 /* TimeUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeUtils.swift; sourceTree = "<group>"; };
+		LPF023 /* CallingPointProgress.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CallingPointProgress.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,6 +91,7 @@
 				LPF022 /* PrivacyInfo.xcprivacy */,
 				LPF017 /* ServiceRows.swift */,
 				LPF003 /* ServiceDetailView.swift */,
+				LPF023 /* CallingPointProgress.swift */,
 				LPF004 /* SettingsView.swift */,
 				LPF005 /* StationPickerSheet.swift */,
 				LPF006 /* TimeFilterSheet.swift */,
@@ -199,6 +202,7 @@
 				LPB009 /* RTTModels.swift in Sources */,
 				LPB010 /* RTTClient.swift in Sources */,
 				LPB011 /* TimeFormatting.swift in Sources */,
+				LPB022 /* CallingPointProgress.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

@@ -11,8 +11,115 @@ struct BoardListView: View {
   @Environment(\.scenePhase) private var scenePhase
 
   var body: some View {
+    boardListWithSheets
+  }
+
+  private var boardListWithSheets: some View {
+    boardListWithSceneObservers
+      .sheet(isPresented: $showStationPicker) {
+        StationPickerSheet(
+          selectedCRS: model.stationCRS,
+          onPick: { station in
+            model.applyStation(station)
+            selectedService = nil
+            Task { await model.load() }
+          }
+        )
+      }
+      .sheet(isPresented: $showTimePicker) {
+        TimeFilterSheet(timeHHmm: $model.filterTimeHHmm)
+      }
+      .sheet(isPresented: $showTowardsPicker) {
+        StationPickerSheet(
+          selectedCRS: model.filterToCRS ?? "",
+          onPick: { station in model.filterToCRS = station.crs },
+          title: L10n.towardsFilterTitle
+        )
+      }
+  }
+
+  private var boardListWithSceneObservers: some View {
+    boardListWithModelObservers
+      .onChange(of: scenePhase) { _, newPhase in
+        switch newPhase {
+        case .active:
+          Task { await model.load() }
+          model.startAutoRefresh()
+        case .background, .inactive:
+          model.stopAutoRefresh()
+        @unknown default:
+          break
+        }
+      }
+  }
+
+  private var boardListWithModelObservers: some View {
+    boardListWithToolbar
+      .task {
+        await model.load()
+        model.startAutoRefresh()
+      }
+      .onChange(of: model.showingArrivals) { _, _ in
+        selectedService = nil
+        model.resetBoard()
+        model.persistBoardPreferences()
+        Task { await model.load() }
+      }
+      .onChange(of: model.filterTimeHHmm) { _, newValue in
+        model.resetBoard()
+        model.persistBoardPreferences()
+        Task { await model.load() }
+        if newValue == nil {
+          model.startAutoRefresh()
+        } else {
+          model.stopAutoRefresh()
+        }
+      }
+      .onChange(of: model.filterToCRS) { _, _ in
+        model.resetBoard()
+        model.persistBoardPreferences()
+        Task { await model.load() }
+      }
+  }
+
+  private var boardListWithToolbar: some View {
+    boardListStyled
+      .toolbar {
+        if showsStationButton {
+          ToolbarItem(placement: .topBarLeading) {
+            Button {
+              showStationPicker = true
+            } label: {
+              Image(systemName: "mappin.and.ellipse")
+                .font(.body.weight(.medium))
+                .symbolRenderingMode(.hierarchical)
+            }
+            .accessibilityLabel("\(L10n.changeStation). \(model.stationDesc)")
+          }
+        }
+
+        ToolbarItemGroup(placement: .topBarTrailing) {
+          filterMenu
+          refreshIndicator
+        }
+      }
+  }
+
+  private var boardListStyled: some View {
+    boardList
+      .listStyle(.insetGrouped)
+      .contentMargins(.top, 0, for: .scrollContent)
+      .contentMargins(.bottom, 88, for: .scrollContent)
+      .navigationTitle("")
+      .navigationBarTitleDisplayMode(.inline)
+      .refreshable {
+        await model.load(userInitiated: true)
+      }
+  }
+
+  private var boardList: some View {
     List {
-      statusSection
+      statusHeaderRow
 
       if let err = model.errorMessage {
         Section {
@@ -30,160 +137,102 @@ struct BoardListView: View {
 
       servicesSection
     }
-    .listStyle(.insetGrouped)
-    .navigationTitle(model.navigationTitle)
-    .navigationBarTitleDisplayMode(.large)
-    .refreshable {
-      await model.load(userInitiated: true)
-    }
-    .toolbar {
-      if showsStationButton {
-        ToolbarItem(placement: .topBarLeading) {
-          Button {
-            showStationPicker = true
-          } label: {
-            Label(model.stationDesc, systemImage: "mappin.and.ellipse")
-              .labelStyle(.titleAndIcon)
-          }
-          .accessibilityLabel(L10n.changeStation)
-        }
-      }
-
-      ToolbarItem(placement: .principal) {
-        Picker(L10n.boardSection, selection: $model.showingArrivals) {
-          Text(L10n.departures).tag(false)
-          Text(L10n.arrivals).tag(true)
-        }
-        .pickerStyle(.segmented)
-        .accessibilityLabel(L10n.boardPickerAccessibility)
-      }
-
-      ToolbarItemGroup(placement: .topBarTrailing) {
-        filterMenu
-        refreshIndicator
-      }
-    }
-    .task {
-      await model.load()
-      model.startAutoRefresh()
-    }
-    .onChange(of: model.showingArrivals) { _, _ in
-      selectedService = nil
-      model.persistBoardPreferences()
-      Task { await model.load() }
-    }
-    .onChange(of: model.filterTimeHHmm) { _, newValue in
-      model.persistBoardPreferences()
-      Task { await model.load() }
-      if newValue == nil {
-        model.startAutoRefresh()
-      } else {
-        model.stopAutoRefresh()
-      }
-    }
-    .onChange(of: model.filterToCRS) { _, _ in
-      model.persistBoardPreferences()
-      Task { await model.load() }
-    }
-    .onChange(of: scenePhase) { _, newPhase in
-      switch newPhase {
-      case .active:
-        Task { await model.load() }
-        model.startAutoRefresh()
-      case .background, .inactive:
-        model.stopAutoRefresh()
-      @unknown default:
-        break
-      }
-    }
-    .sheet(isPresented: $showStationPicker) {
-      StationPickerSheet(
-        selectedCRS: model.stationCRS,
-        onPick: { station in
-          model.applyStation(station)
-          selectedService = nil
-          Task { await model.load() }
-        }
-      )
-    }
-    .sheet(isPresented: $showTimePicker) {
-      TimeFilterSheet(timeHHmm: $model.filterTimeHHmm)
-    }
-    .sheet(isPresented: $showTowardsPicker) {
-      StationPickerSheet(
-        selectedCRS: model.filterToCRS ?? "",
-        onPick: { station in model.filterToCRS = station.crs },
-        title: L10n.towardsFilterTitle
-      )
-    }
   }
 
   // MARK: - Status section
 
-  private var statusSection: some View {
-    Section {
-      VStack(spacing: 6) {
-        // System status banner
-        if let banner = model.systemStatus?.bannerMessage {
-          HStack(spacing: 6) {
-            Image(systemName: "exclamationmark.circle.fill")
-              .foregroundStyle(.orange)
-              .font(.subheadline)
-            Text(banner)
-              .font(.subheadline)
-              .foregroundStyle(.orange)
-            Spacer()
-          }
-          .padding(.vertical, 2)
-          .accessibilityLabel(banner)
+  private var statusHeaderRow: some View {
+    VStack(spacing: 6) {
+      Text(model.navigationTitle)
+        .font(.largeTitle.weight(.bold))
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .lineLimit(2)
+        .minimumScaleFactor(0.85)
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.bottom, 4)
+
+      HStack(spacing: 8) {
+        BoardModePill(
+          title: L10n.departures,
+          systemImage: "arrow.up.forward",
+          isSelected: !model.showingArrivals
+        ) {
+          model.showingArrivals = false
         }
+        BoardModePill(
+          title: L10n.arrivals,
+          systemImage: "arrow.down.forward",
+          isSelected: model.showingArrivals
+        ) {
+          model.showingArrivals = true
+        }
+        Spacer(minLength: 0)
+      }
+      .accessibilityElement(children: .contain)
+      .accessibilityLabel(L10n.boardPickerAccessibility)
 
-        HStack(spacing: 8) {
-          if model.isLive {
-            HStack(spacing: 4) {
-              Circle()
-                .fill(.green)
-                .frame(width: 8, height: 8)
-              Text(L10n.liveLabel)
-                .font(.subheadline.weight(.medium))
-                .foregroundStyle(.green)
-            }
-            .accessibilityLabel(L10n.liveA11y)
-          }
-
-          Text(model.scheduleContextDescription)
+      // System status banner
+      if let banner = model.systemStatus?.bannerMessage {
+        HStack(spacing: 6) {
+          Image(systemName: "exclamationmark.circle.fill")
+            .foregroundStyle(.orange)
             .font(.subheadline)
-            .foregroundStyle(.secondary)
-
+          Text(banner)
+            .font(.subheadline)
+            .foregroundStyle(.orange)
           Spacer()
+        }
+        .padding(.vertical, 2)
+        .accessibilityLabel(banner)
+      }
 
-          if let last = model.lastRefreshLabel {
-            Text(last)
-              .font(.caption)
-              .foregroundStyle(.tertiary)
-              .monospacedDigit()
+      HStack(spacing: 8) {
+        if model.isLive {
+          HStack(spacing: 4) {
+            Circle()
+              .fill(.green)
+              .frame(width: 8, height: 8)
+            Text(L10n.liveLabel)
+              .font(.subheadline.weight(.medium))
+              .foregroundStyle(.green)
           }
+          .accessibilityLabel(L10n.liveA11y)
         }
 
-        // Active filter chips — shown inline, no extra section gap
-        if hasActiveFilters {
-          HStack(spacing: 8) {
-            if let crs = model.filterToCRS {
-              FilterChip(label: L10n.activeFilterTowards(crs.uppercased())) {
-                model.filterToCRS = nil
-              }
-            }
-            if let hhmm = model.filterTimeHHmm {
-              FilterChip(label: L10n.activeFilterTime(TimeFormatting.displayHHmm(hhmm))) {
-                model.filterTimeHHmm = nil
-              }
-            }
-            Spacer()
-          }
+        Text(model.scheduleContextDescription)
+          .font(.subheadline)
+          .foregroundStyle(.secondary)
+
+        Spacer()
+
+        if let last = model.lastRefreshLabel {
+          Text(last)
+            .font(.caption)
+            .foregroundStyle(.tertiary)
+            .monospacedDigit()
         }
       }
-      .listRowBackground(Color.clear)
+
+      // Active filter chips — shown inline, no extra section gap
+      if hasActiveFilters {
+        HStack(spacing: 8) {
+          if let crs = model.filterToCRS {
+            FilterChip(label: L10n.activeFilterTowards(crs.uppercased())) {
+              model.filterToCRS = nil
+            }
+          }
+          if let hhmm = model.filterTimeHHmm {
+            FilterChip(label: L10n.activeFilterTime(TimeFormatting.displayHHmm(hhmm))) {
+              model.filterTimeHHmm = nil
+            }
+          }
+          Spacer()
+        }
+      }
     }
+    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 8, trailing: 16))
+    .listRowBackground(Color.clear)
+    .listRowSeparator(.hidden)
   }
 
   // MARK: - Filter menu
@@ -316,5 +365,29 @@ private struct FilterChip: View {
       .background(Color.secondary.opacity(0.12), in: Capsule())
     }
     .buttonStyle(.plain)
+  }
+}
+
+private struct BoardModePill: View {
+  let title: String
+  let systemImage: String
+  let isSelected: Bool
+  let onTap: () -> Void
+
+  var body: some View {
+    Button(action: onTap) {
+      Label(title, systemImage: systemImage)
+        .font(.headline.weight(.semibold))
+        .labelStyle(.titleAndIcon)
+        .foregroundStyle(isSelected ? .white : .secondary)
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
+        .background(
+          isSelected ? Color(.tertiaryLabel) : Color(.quaternarySystemFill),
+          in: Capsule()
+        )
+    }
+    .buttonStyle(.plain)
+    .accessibilityAddTraits(isSelected ? [.isSelected] : [])
   }
 }

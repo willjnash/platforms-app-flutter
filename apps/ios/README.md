@@ -40,3 +40,18 @@ xcodebuild -scheme LondonPlatforms -destination 'platform=iOS Simulator,name=iPh
 ```
 
 Adjust the simulator name to match your installed runtimes (`xcrun simctl list devices available`).
+
+## Build and deploy to Will’s iPhone (primary device)
+
+Use the device UDID as the destination, then install and launch with `devicectl`:
+
+```bash
+cd apps/ios
+DEVICE_ID=00008110-000C093921D1401E
+xcodebuild -scheme LondonPlatforms -destination "id=$DEVICE_ID" -configuration Debug -allowProvisioningUpdates build
+APP="$HOME/Library/Developer/Xcode/DerivedData/LondonPlatforms-*/Build/Products/Debug-iphoneos/LondonPlatforms.app"
+xcrun devicectl device install app --device "$DEVICE_ID" $APP
+xcrun devicectl device process launch --device "$DEVICE_ID" com.platforms.LondonPlatforms
+```
+
+Resolve `LondonPlatforms-*` to your actual DerivedData folder if the glob matches more than one path.

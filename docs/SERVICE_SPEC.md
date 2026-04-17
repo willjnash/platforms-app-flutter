@@ -1,297 +1,828 @@
-# London Platforms — Service specification
+# London Platforms - Service Specification
 
-Language-agnostic specification for clients (e.g. native iOS/Android) that reproduce the behaviour of the London train departure/arrival platforms product. This document describes **product behaviour**, **external HTTP integration**, and **JSON data contracts**. It does not prescribe implementation language or UI framework.
+Version: 2.1  
+Status: Current  
+Last updated: 2026-04-14
 
----
+This document is the canonical, language-agnostic product and integration specification for London Platforms clients. It is intentionally detailed so native iOS, future native Android, and any backend/proxy components can implement identical behavior.
 
-## 1. Product overview
-
-**Purpose:** Help travellers see **departure platforms** (and optionally **arrivals**) for selected **London main-line stations**, using data from **RealTime Trains** (RTT).
-
-**Core value:** Fast view of “which platform, when” with clear distinction when a platform is **confirmed** versus **expected / pending**.
+This version reflects the active native client integration with `https://data.rtt.io` (RTT v2 style APIs) and supersedes earlier v1-style path examples.
 
 ---
 
-## 2. Functional requirements
+## 0) Normative language
 
-### 2.1 Main list
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in RFC 2119 / RFC 8174.
 
-- Load services for the **selected station** (UK CRS code).
-- **Default mode:** departures for “now” (no time segment on the search request; see §4).
-- **Optional time filter:** User chooses a **time on the current local calendar day**. Requests include that time in the path (see §4). Date parts use **device local** “today”.
-- **Mode toggle:** Switch between **departures** and **arrivals** for the same station and time selection.
-- **Manual refresh:** Reload data; display **last successful refresh** as local time `HH:mm`.
-- **Empty state:** When there are no services to show, display a clear “no services at this time” (or equivalent) message.
-- **Row activation:** Open **service detail** for the selected service using `serviceUid` and `runDate` from the list item.
+Conformance:
 
-### 2.2 Departure row (presentation rules)
-
-| Element | Source |
-|--------|--------|
-| Scheduled departure time (leading) | `locationDetail.gbttBookedDeparture`, displayed as `HH:mm` from a four-digit `HHmm` string |
-| Primary label (title) | `locationDetail.destination[0].description` |
-| Secondary label (subtitle) | `atocName`; append platform status per below |
-| Platform (trailing) | `locationDetail.platform` when relevant; emphasize when confirmed |
-
-**Platform confirmed** when `locationDetail.platformConfirmed` is true:
-
-- Visually emphasize the row (e.g. distinct background colour).
-- Subtitle includes text equivalent to: “Platform Confirmed”.
-- Show platform identifier **prominently** (e.g. large, bold type).
-
-**Platform not confirmed:**
-
-- If `locationDetail.platform` is present: subtitle includes text equivalent to: “Platform Pending (expected {platform})”.
-- Otherwise: subtitle is `atocName` only.
-
-### 2.3 Arrival row (presentation rules)
-
-| Element | Source |
-|--------|--------|
-| Time (leading) | `locationDetail.destination[0].publicTime` as `HH:mm` |
-| Primary label | `locationDetail.origin[0].description` |
-| Secondary label | `atocName` |
-| Platform (trailing) | `locationDetail.platform` (prominent sizing is acceptable) |
-
-Note: Arrival rows do not use the same “confirmed vs pending” branching as departures in the reference product.
-
-### 2.4 Service detail (“calling points”)
-
-- Fetch the **service** resource by `serviceUid` and date derived from `runDate` (see §4).
-- Show identifying line: `trainIdentity` and `atocName`.
-- Show headline: first origin public time (as `HH:mm`) + “ to ” + `destination[0].description`.
-- Section title equivalent to: “Calling points:”
-- Build the calling-point list from `locations` with **all** of the following true for an entry to be shown:
-
-  1. `isPublicCall` is true  
-  2. `origin[0].description` ≠ `description`  
-  3. `gbttBookedArrival` is non-null  
-
-- **Line format:** `{description} ({formatted gbttBookedArrival})` where the time uses the same `HH:mm` rule. If `destination[0].description` ≠ `description`, append `", "` after the closing parenthesis; otherwise end after `)`.
-
-### 2.5 Station catalogue
-
-Persist user’s choice. Default station: **EUS** / **Euston**.
-
-| CRS | Display name |
-|-----|----------------|
-| BFR | Blackfriars |
-| CST | Cannon Street |
-| CHX | Charing Cross |
-| CTK | City Thameslink |
-| EUS | Euston |
-| FST | Fenchurch Street |
-| KGX | Kings Cross |
-| LST | Liverpool Street |
-| LBG | London Bridge |
-| MYB | Marylebone |
-| MOG | Moorgate |
-| OLD | Old Street |
-| PAD | Paddington |
-| STP | St Pancras (Domestic) |
-| VXH | Vauxhall |
-| VIC | Victoria |
-| WAT | Waterloo |
-| WAE | Waterloo East |
-
-### 2.6 About, attribution, and policy
-
-- App name shown to user: **London Platforms** (or successor branding).
-- Attribution: **Data used with the kind permission of RealTimeTrains.**
-- Feedback contact: **platformfeedback@icloud.com**
-- Privacy policy URL (open in system browser):  
-  `https://platformsapp.wordpress.com/london-platforms-privacy-notice/`
-
-### 2.7 Client-side persistence
-
-| Key | Meaning |
-|-----|--------|
-| `savedStation` | CRS code (string) |
-| `savedStationDesc` | Human-readable station name matching the catalogue |
-
-Default when unset: `EUS` and `Euston`.
-
-### 2.8 Theming (parity with reference product)
-
-- Support **light** and **dark** appearance at application level.
-- Light theme primary accent: **blue grey** family (exact colour values are implementation-defined).
+- A client is conformant only if all REQUIRED/MUST statements are implemented.
+- SHOULD statements are strongly recommended and SHOULD only be violated with an explicit, documented reason.
+- MAY/OPTIONAL statements are implementation choices and must not break REQUIRED behavior.
 
 ---
 
-## 3. External dependency: RealTime Trains API
+## 1) Purpose and scope
 
-### 3.1 Base URL
+London Platforms helps passengers quickly answer:
 
-`https://api.rtt.io`
+- Which services are relevant for a selected station?
+- What time are they planned to run?
+- Are they on time, delayed, cancelled, or pass-through?
+- Which platform is expected or confirmed?
+- What are the calling points for a selected service?
 
-### 3.2 Authentication
+This spec covers:
 
-HTTP **Basic** authentication: header `Authorization: Basic <base64(username:password)>` using credentials issued by RealTime Trains.
+- User-facing functional behavior
+- Data contracts used by clients
+- RealTime Trains (RTT) integration semantics
+- Presentation and decision rules
+- Persistence keys
+- Error handling requirements
 
-**Security:** Do not embed long-lived API credentials in shipped app binaries where they can be extracted. Prefer a backend proxy, rotating secrets, or arrangements compliant with RTT terms of use.
+This spec does not prescribe:
 
-### 3.3 Resources used
-
-All JSON under `/api/v1/json/`.
-
-| Operation | Method | Path pattern |
-|-----------|--------|--------------|
-| Station departures (current) | GET | `/api/v1/json/search/{crs}` |
-| Station departures at time | GET | `/api/v1/json/search/{crs}/{yyyy}/{MM}/{dd}/{HHmm}` |
-| Station arrivals (current) | GET | `/api/v1/json/search/{crs}/arrivals` |
-| Station arrivals at time | GET | `/api/v1/json/search/{crs}/{yyyy}/{MM}/{dd}/{HHmm}/arrivals` |
-| Service detail | GET | `/api/v1/json/service/{serviceUid}/{yyyy}/{MM}/{dd}` |
-
-- `{crs}`: uppercase CRS (e.g. `EUS`).
-- `{yyyy}`, `{MM}`, `{dd}`: calendar components for **local today** on the search requests; for **service detail**, derived from the service’s `runDate` (§3.4).
-- `{HHmm}`: four-digit 24-hour time, no colon (e.g. `0930`, `1430`).
-
-### 3.4 Path construction rules
-
-**Search (departures or arrivals):**
-
-- If the user has **not** chosen a time of day: use the path **without** the `/{yyyy}/{MM}/{dd}/{HHmm}` segment (only `/search/{crs}` or `/search/{crs}/arrivals`).
-- If the user **has** chosen a time: append `/{yyyy}/{MM}/{dd}/{HHmm}` using **today’s local date** and the stored `HHmm` value.
-
-**Service detail:**
-
-- `runDate` from the API is expected in form `yyyy-MM-dd`.
-- Convert to path segments: `/` + year + `/` + month + `/` + day (e.g. `2026-04-04` → `/2026/04/04`).
-
-### 3.5 HTTP semantics
-
-- **200:** Parse body as JSON per §4.
-- **Non-success:** Treat as failure; dismiss loading state and show a user-appropriate error. Retry policy is implementation-defined.
+- A specific UI toolkit
+- Concrete architecture patterns
+- Color hex values or exact spacing constants
 
 ---
 
-## 4. JSON data contracts
+## 2) Product behavior
 
-Field names match RTT JSON. Types below are logical; nullability follows real payloads (clients should tolerate omitted or null fields where reasonable).
+### 2.1 Main board (station list)
 
-### 4.1 Search response root (`Departures`)
+The board presents live or time-filtered services for a selected station CRS.
 
-| Field | Type | Notes |
-|-------|------|--------|
-| `location` | object | See **Location** |
-| `filter` | any | Optional; not required for UI |
-| `services` | array of **ServiceSummary** | Absent or null → treat as no services |
+Required capabilities:
 
-**Location**
+- Select a station (default `EUS` / `Euston`).
+- Toggle departures vs arrivals.
+- Optional time filter (same local calendar day as the device).
+- Optional "towards" station filter.
+- Pull-to-refresh/manual refresh.
+- Auto-refresh for live mode only.
+- Last refresh indicator.
+- Clear empty state when no rows render.
+- Tap row to open service detail.
 
-| Field | Type |
-|-------|------|
-| `name` | string |
-| `crs` | string |
-| `tiploc` | string or null |
+### 2.2 Live vs time-filtered mode
 
-**ServiceSummary**
+- Live mode: no explicit time filter selected.
+- Time-filtered mode: `HHmm` selected by user.
+- Auto-refresh runs in live mode and pauses in time-filtered mode.
 
-| Field | Type |
-|-------|------|
-| `locationDetail` | **LocationDetail** |
-| `serviceUid` | string |
-| `runDate` | string (`yyyy-MM-dd`) |
-| `trainIdentity` | string |
-| `runningIdentity` | string |
-| `atocCode` | string |
-| `atocName` | string |
-| `serviceType` | string |
-| `isPassenger` | boolean |
+### 2.3 Board row eligibility rules
 
-**LocationDetail**
+A row is renderable only when all required data exists and business filters allow it.
 
-| Field | Type |
-|-------|------|
-| `realtimeActivated` | boolean |
-| `tiploc` | string |
-| `crs` | string |
-| `description` | string |
-| `gbttBookedDeparture` | string |
-| `origin` | array of **CallPointRef** |
-| `destination` | array of **CallPointRef** |
-| `isCall` | boolean |
-| `isPublicCall` | boolean |
-| `realtimeDeparture` | string |
-| `realtimeDepartureActual` | boolean |
-| `platform` | string |
-| `platformConfirmed` | boolean |
-| `platformChanged` | boolean |
-| `serviceLocation` | string |
-| `displayAs` | string |
+Common exclusion:
 
-**CallPointRef** (used under `origin` / `destination`)
+- `inPassengerService == false` -> do not render.
 
-| Field | Type |
-|-------|------|
-| `tiploc` | string |
-| `description` | string |
-| `workingTime` | string |
-| `publicTime` | string |
+Departures render when either:
 
-### 4.2 Service detail response root (`ServiceDetail`)
+- It is a stopping service with a scheduled departure time and destination.
+- It is a pass-through service (non-stopping) and pass-through display is enabled by user preference.
 
-| Field | Type |
-|-------|------|
-| `serviceUid` | string |
-| `runDate` | string |
-| `serviceType` | string |
-| `isPassenger` | boolean |
-| `trainIdentity` | string |
-| `powerType` | string |
-| `trainClass` | string |
-| `atocCode` | string |
-| `atocName` | string |
-| `performanceMonitored` | boolean |
-| `origin` | array of **CallPointRef** |
-| `destination` | array of **CallPointRef** |
-| `locations` | array of **ServiceLocation** |
-| `realtimeActivated` | boolean |
-| `runningIdentity` | string |
+Arrivals render when:
 
-**ServiceLocation** (extends the same core idea as LocationDetail for calling points)
+- Destination public time for current station exists, and
+- Origin exists.
 
-| Field | Type |
-|-------|------|
-| `realtimeActivated` | boolean |
-| `tiploc` | string |
-| `crs` | string |
-| `description` | string |
-| `gbttBookedDeparture` | string |
-| `origin` | array of **CallPointRef** |
-| `destination` | array of **CallPointRef** |
-| `isCall` | boolean |
-| `isPublicCall` | boolean |
-| `realtimeDeparture` | string |
-| `realtimeDepartureActual` | boolean |
-| `platform` | string |
-| `platformConfirmed` | boolean |
-| `platformChanged` | boolean |
-| `line` | string |
-| `lineConfirmed` | boolean |
-| `displayAs` | string |
-| `gbttBookedArrival` | string |
-| `realtimeArrival` | string |
-| `realtimeArrivalActual` | boolean |
+### 2.4 Departure row behavior
 
-### 4.3 Display time rule
+Primary sources:
 
-For values stored as at least four characters representing `HHmm`, display as `HH:mm` (first two digits, colon, next two digits). Behaviour for shorter or malformed strings is implementation-defined (reference product assumes valid `HHmm`).
+- Scheduled time: `locationDetail.gbttBookedDeparture` (or `passHHmm` for pass-through rows)
+- Title: first destination description
+- Operator/headcode metadata
+- Platform: planned/actual platform fields
+- Delay/cancellation/reason data from temporal and reason blocks
+
+Rules:
+
+- If cancelled (`displayAs == CANCELLED`), visually de-emphasize and strike through key text.
+- If delayed (`lateness > 0` or realtime differs), show delay badge and expected time.
+- If platform is confirmed (actual platform present), apply confirmed visual treatment and confirmed wording.
+- If platform changed (actual differs from planned), show "changed" indicator.
+- Pass-through service should show pass-through status and no platform emphasis.
+
+### 2.5 Arrival row behavior
+
+Primary sources:
+
+- Scheduled time: destination public time at current location
+- Title: origin description
+- Platform and realtime arrival fields
+
+Rules:
+
+- Similar delayed/cancelled handling as departures.
+- No special confirmed-vs-pending branch required for platform wording parity unless product decides to align with departures.
+
+### 2.6 Service detail behavior
+
+When user opens a service:
+
+- Client requests service detail by service identity + run date.
+- Header should show headcode/identity and operator.
+- Headline should include first origin public time plus destination summary when available.
+- Calling points list is generated from service locations using strict filters (see section 7).
+- Public associations (join/divide/form) are listed and navigable.
+
+### 2.7 System status banner
+
+Board may display degraded-data/system-state banner from `systemStatus` payload:
+
+- `SCHEDULE_ONLY`
+- `REALTIME_DEGRADED`
+- `REALTIME_DATA_NONE`
+- `REALTIME_DATA_LIMITED`
+
+Only one highest-priority message should display at once.
 
 ---
 
-## 5. Non-functional expectations
+## 3) Station catalog behavior
 
-- Use TLS for all API traffic.
-- Respect device **local time zone** for “today” in search URLs.
-- Loading indicator while requests are in flight.
-- Network failure and timeout handling are required; specifics are implementation-defined.
+### 3.1 Default and persistence
+
+Default station:
+
+- CRS: `EUS`
+- Name: `Euston`
+
+Persist:
+
+- `savedStation`
+- `savedStationDesc`
+
+### 3.2 Fallback catalog (must exist offline)
+
+Clients must include fallback London stations:
+
+- BFR Blackfriars
+- CST Cannon Street
+- CHX Charing Cross
+- CTK City Thameslink
+- EUS Euston
+- FST Fenchurch Street
+- KGX Kings Cross
+- LST Liverpool Street
+- LBG London Bridge
+- MYB Marylebone
+- MOG Moorgate
+- OLD Old Street
+- PAD Paddington
+- STP St Pancras (Domestic)
+- VXH Vauxhall
+- VIC Victoria
+- WAT Waterloo
+- WAE Waterloo East
+
+### 3.3 Dynamic catalog refresh
+
+Client may refresh station catalog from RTT stops endpoint and cache results.  
+If network fetch fails, fallback list remains valid.
 
 ---
 
-## 6. Versioning
+## 4) External dependency and security
 
-- **Document version:** 1.0  
-- **Reference product version label (historical):** 2.0.2+7  
+### 4.1 API base
 
-Changes to this spec should bump the document version and record a short changelog in the repository commit message or a `CHANGELOG` entry if the project maintains one.
+- Base URL: `https://data.rtt.io`
+
+### 4.2 Authentication model
+
+RTT uses a two-token flow:
+
+1. Long-lived bearer refresh token (app configuration secret)
+2. Short-lived access token returned by `/api/get_access_token`
+
+Client behavior:
+
+- Retrieve refresh token from secure app configuration (for local dev, injected via xcconfig/plist).
+- Call `/api/get_access_token` with `Authorization: Bearer <refresh-token>`.
+- Cache short-lived token with expiry.
+- Reuse until close to expiry (recommended safety margin: 60 seconds).
+- Use short-lived token for subsequent API calls:
+  - `Authorization: Bearer <access-token>`
+
+Security requirements:
+
+- Do not commit secrets.
+- Do not hardcode production credentials in source.
+- Prefer proxy or rotation strategy for public releases.
+
+---
+
+## 5) HTTP resources and semantics
+
+### 5.1 Access token exchange
+
+- Method: `GET`
+- Path: `/api/get_access_token`
+- Auth: refresh token in `Authorization` header
+- Success: `200` with token body
+- Client MUST treat missing/empty `token` as an authentication failure.
+- Client SHOULD use `validUntil` when supplied to manage cache expiry.
+
+### 5.2 Board/location query
+
+- Method: `GET`
+- Path: `/gb-nr/location`
+- Query parameters:
+  - `code` (required): station CRS
+  - `timeFrom` (optional): ISO local datetime, seconds included
+  - `filterTo` (optional): CRS for "towards" filtering
+  - `arrivals` (optional/implementation-specific): explicit arrivals mode selector if required by RTT response behavior
+
+Expected status handling:
+
+- `200`: parse board payload
+- `204`: treat as success with empty services
+- Other non-2xx: failure
+- Client MUST include `code`.
+- Client MUST uppercase CRS values before dispatch.
+- Client MUST ensure arrivals mode is explicitly represented in request semantics supported by the backend.
+
+### 5.3 Service detail query
+
+- Method: `GET`
+- Path: `/gb-nr/service`
+- Query parameters:
+  - `identity`: service UID/identity
+  - `departureDate`: run date (`yyyy-MM-dd`)
+
+Status handling:
+
+- `200`: parse service payload
+- Other non-2xx: failure
+- Client MUST provide both `identity` and `departureDate`.
+
+### 5.4 Stops catalog query (optional)
+
+- Method: `GET`
+- Path: `/data/stops`
+- Success: parse stop list and cache station pairs
+- Failure: ignore and continue with fallback catalog
+- Clients MAY skip this request entirely and remain conformant if fallback catalog is present.
+
+---
+
+## 6) Request construction rules
+
+### 6.1 CRS handling
+
+- Uppercase CRS before sending.
+- Reject or sanitize empty CRS.
+
+### 6.2 Time filter formatting
+
+Input:
+
+- `HHmm` (4-digit 24h local time), stored in user settings
+
+Request conversion:
+
+- Build local "today" date parts from device local timezone.
+- Construct `timeFrom` as:
+  - `yyyy-MM-ddTHH:mm:00`
+
+Example:
+
+- Local date `2026-04-14`, filter `0930` -> `2026-04-14T09:30:00`
+
+### 6.3 Arrivals mode
+
+Clients must ensure arrivals mode is explicitly represented in request semantics supported by API (query parameter or endpoint behavior) so arrivals are not accidentally resolved as departures.
+
+Normative requirement:
+
+- Arrivals toggle MUST alter request behavior in a backend-recognized way.
+- If backend semantics change, clients MUST include a compatibility shim so user-visible arrivals behavior remains correct.
+
+### 6.4 Service detail date
+
+- Use `runDate` from board item directly as `departureDate`.
+- Expected format: `yyyy-MM-dd`.
+
+---
+
+## 7) Data contracts (logical model)
+
+Field names follow RTT payload naming where possible.  
+Clients must tolerate omitted/null fields where safe.
+
+### 7.1 Board response root
+
+`DeparturesResponse` (name retained for legacy parity):
+
+- `services`: array of service lineups (nullable)
+- `systemStatus`: optional system-state object
+
+Logical system status:
+
+- `rttCore`: `OK | REALTIME_DEGRADED | SCHEDULE_ONLY`
+- `realtimeNetworkRail`: `OK | REALTIME_DATA_LIMITED | REALTIME_DATA_NONE`
+
+### 7.2 Service summary model
+
+Per row:
+
+- `serviceUid` (identity)
+- `runDate` (`yyyy-MM-dd`)
+- `trainIdentity` (headcode/reporting identity preferred)
+- `atocName`
+- `modeType` (e.g. `TRAIN`, `REPLACEMENT_BUS`, `BUS`, `SCHEDULED_BUS`)
+- `inPassengerService`
+- `locationDetail` (derived detail block)
+
+### 7.3 Location detail model
+
+Core fields:
+
+- Scheduled HHmm values:
+  - `gbttBookedDeparture`
+  - `gbttBookedArrival`
+  - `passHHmm`
+- Realtime HHmm values:
+  - `realtimeDeparture`
+  - `realtimeArrival`
+- Actual flags:
+  - `realtimeDepartureActual`
+  - `realtimeArrivalActual`
+- Lateness:
+  - `departureLatenessMinutes`
+  - `arrivalLatenessMinutes`
+- Live statuses:
+  - `departureStatus`
+  - `arrivalStatus`
+- Platform:
+  - `platform`
+  - `platformConfirmed`
+  - `platformChanged`
+- Display metadata:
+  - `displayAs` (e.g. `CALL`, `CANCELLED`, `DIVERTED`, `STARTS`, `TERMINATES`)
+  - `delayReason`
+- Capacity metadata:
+  - `numberOfVehicles`
+- Row text sources:
+  - `origin[]`
+  - `destination[]`
+
+### 7.4 Service detail response model
+
+- `serviceUid`
+- `runDate`
+- `trainIdentity`
+- `atocName`
+- `origin[]`
+- `destination[]`
+- `locations[]`
+- `delayReason`
+
+`locations[]` (service location):
+
+- `description`
+- `isPublicCall`
+- `gbttBookedArrival`
+- `gbttBookedDeparture`
+- `realtimeArrival`
+- `realtimeDeparture`
+- `platform`
+- `platformConfirmed`
+- `displayAs`
+- `isRequestStop`
+- `delayReason`
+- `associations[]`
+
+Association:
+
+- `type` (`JOIN_FROM`, `JOIN_INTO`, `DIVIDE_INTO`, `DIVIDE_FROM`, `FORM_INTO`, `FORM_FROM`)
+- `isPublic`
+- `serviceUid`
+- `runDate`
+- `headcode`
+- `operatorName`
+
+---
+
+## 8) Mapping and display rules
+
+### 8.1 Time extraction
+
+RTT temporal values may arrive as ISO datetimes.  
+Client converts to display-ready HHmm:
+
+- Extract local/hour-minute portion -> `HHmm`
+- Display as `HH:mm`
+
+Malformed/short values:
+
+- Implementation may return placeholder (`-`) or suppress expected time.
+
+### 8.2 Delay determination
+
+Preferred source:
+
+- Server-provided lateness minutes.
+
+Fallback:
+
+- Compute delta between booked HHmm and realtime HHmm when both present.
+
+### 8.3 Platform determination
+
+- Planned platform from `platform.planned`.
+- Confirmed platform when `platform.actual` exists.
+- Changed platform when both exist and differ.
+
+### 8.4 Cancellation
+
+- Service/location cancelled when `displayAs == CANCELLED`.
+- Cancelled rows should show cancellation status and not imply confirmed platform certainty.
+
+### 8.5 Bus replacement
+
+Treat `modeType` values:
+
+- `REPLACEMENT_BUS`
+- `BUS`
+- `SCHEDULED_BUS`
+
+as non-rail replacement modes and display corresponding badge/copy.
+
+### 8.6 Calling point inclusion
+
+A location is a calling point row when:
+
+1. It is a public call.
+2. Description exists.
+3. Description is not same as service origin description (to avoid duplicate origin headline semantics).
+4. Scheduled arrival exists (for time display).
+
+Optional additions:
+
+- Show expected arrival when realtime differs.
+- Show request-stop badge.
+- Show reason text for delayed/cancelled points.
+
+### 8.7 Associations inclusion
+
+Flatten associations from all locations and include only:
+
+- `isPublic == true`
+
+De-duplicate by stable ID:
+
+- `<type>-<serviceUid>-<runDate>`
+
+---
+
+## 9) Persistence keys
+
+Required user defaults keys:
+
+- `savedStation` (CRS)
+- `savedStationDesc` (station display name)
+- `savedShowingArrivals` (bool)
+- `savedTimeFilterHHmm` (optional HHmm)
+- `savedFilterToCRS` (optional CRS)
+- `savedShowNonStoppingTrains` (bool)
+- `cachedStations` (optional cached catalog payload)
+
+---
+
+## 10) Error handling requirements
+
+### 10.1 Credential/configuration errors
+
+When refresh token is missing/blank:
+
+- Fail fast with explicit configuration error copy.
+- App remains usable for local navigation but network data operations fail gracefully.
+
+### 10.2 HTTP failures
+
+- Non-success responses (except approved empty statuses like `204`) must produce user-visible error state.
+- Keep existing data visible where possible; avoid blanking prior successful board unless design requires.
+- Authentication failures MUST produce credential/configuration specific error messaging where possible.
+
+### 10.3 Decoding failures
+
+- Report as data/parsing error.
+- Do not crash on unexpected nullable fields.
+
+### 10.4 Retry behavior
+
+- Manual retry always available.
+- Auto-refresh acts as periodic retry in live mode.
+
+---
+
+## 11) Non-functional requirements
+
+- TLS for all RTT traffic.
+- Respect device local timezone for date/time filtering.
+- Responsive UI with explicit loading indicators.
+- Accessibility labels for status, platform, and key row summaries.
+- Localization-ready strings (no hardcoded user-facing copy in business logic).
+- No tracking declaration in privacy manifest unless functionality changes.
+- Clients MUST avoid logging secrets/tokens in plaintext application logs.
+
+---
+
+## 12) Compatibility and migration notes
+
+- Previous repository docs referenced RTT v1 (`api.rtt.io`) path-style search and HTTP Basic auth.
+- Current native clients use RTT v2-style data endpoints (`data.rtt.io`) with bearer token exchange.
+- New implementations must follow this v2 document unless a platform is explicitly pinned to legacy behavior.
+
+If a platform must support both integration modes, maintain a documented compatibility layer and explicit config toggle.
+
+---
+
+## 13) Test checklist (implementation conformance)
+
+Minimum acceptance tests:
+
+1. Board loads for default station in live departures mode.
+2. Arrivals mode issues distinct arrivals request semantics and produces arrival rows.
+3. Time filter applies local-date `timeFrom` correctly.
+4. Towards filter constrains services.
+5. 204 board response renders empty-state without error.
+6. Missing credentials surface configuration error.
+7. Confirmed platform and changed platform visual states are distinct.
+8. Cancelled services show cancellation state and reason text when present.
+9. Service detail calling points obey inclusion rules.
+10. Associations list contains only public associations and no duplicates.
+11. Station fallback works with no network.
+12. Station cache updates after successful stops fetch.
+
+---
+
+## 14) Future extensions (non-breaking)
+
+Potential additive enhancements:
+
+- Occupancy/capacity-level indicators.
+- Service disruption grouping by reason category.
+- Platform confidence tiers beyond planned/actual.
+- Backend proxy mode for stronger credential protection.
+- Multi-region station presets beyond London focus.
+
+Any additions should remain backward compatible with section 7 contracts or version-bump with migration notes.
+
+---
+
+## 15) Example payloads and requests
+
+The examples in this section are illustrative, redacted, and non-authoritative for value ranges.  
+Field presence and structural shape are authoritative.
+
+### 15.1 Token exchange
+
+Request:
+
+```http
+GET /api/get_access_token HTTP/1.1
+Host: data.rtt.io
+Authorization: Bearer eyJhbGciOi...<refresh-token>...abc
+Accept: application/json
+```
+
+Response (`200`):
+
+```json
+{
+  "token": "eyJhbGciOi...<short-lived-access-token>...xyz",
+  "validUntil": "2026-04-14T16:10:22+01:00"
+}
+```
+
+### 15.2 Board request (live departures)
+
+Request:
+
+```http
+GET /gb-nr/location?code=EUS HTTP/1.1
+Host: data.rtt.io
+Authorization: Bearer eyJhbGciOi...<access-token>...xyz
+Accept: application/json
+```
+
+Representative response (`200`):
+
+```json
+{
+  "systemStatus": {
+    "rttCore": "OK",
+    "realtimeNetworkRail": "OK"
+  },
+  "services": [
+    {
+      "scheduleMetadata": {
+        "identity": "C12345",
+        "departureDate": "2026-04-14",
+        "trainReportingIdentity": "1A23",
+        "operator": {
+          "name": "Avanti West Coast"
+        },
+        "modeType": "TRAIN",
+        "inPassengerService": true
+      },
+      "temporalData": {
+        "displayAs": "CALL",
+        "departure": {
+          "scheduleAdvertised": "2026-04-14T16:40:00+01:00",
+          "realtimeForecast": "2026-04-14T16:44:00+01:00",
+          "realtimeAdvertisedLateness": 4,
+          "status": "AT_PLATFORM"
+        },
+        "arrival": {
+          "scheduleAdvertised": "2026-04-14T18:22:00+01:00"
+        }
+      },
+      "locationMetadata": {
+        "platform": {
+          "planned": "8",
+          "actual": "9"
+        },
+        "numberOfVehicles": 9,
+        "isRequestStop": false
+      },
+      "origin": [
+        {
+          "location": {
+            "description": "London Euston"
+          }
+        }
+      ],
+      "destination": [
+        {
+          "location": {
+            "description": "Manchester Piccadilly"
+          }
+        }
+      ],
+      "reasons": [
+        {
+          "type": "DELAY",
+          "shortText": "Late inbound service"
+        }
+      ]
+    }
+  ]
+}
+```
+
+### 15.3 Board request (time-filtered arrivals)
+
+Request:
+
+```http
+GET /gb-nr/location?code=EUS&timeFrom=2026-04-14T09:30:00&arrivals=true HTTP/1.1
+Host: data.rtt.io
+Authorization: Bearer eyJhbGciOi...<access-token>...xyz
+Accept: application/json
+```
+
+Notes:
+
+- The exact arrivals selector (`arrivals=true`, alternate query key, or endpoint behavior) is backend-dependent.
+- Clients MUST use whichever explicit selector yields true arrivals behavior.
+
+### 15.4 Board empty response
+
+Response (`204`):
+
+- No body expected.
+- Client treats as successful empty services list.
+
+### 15.5 Service detail request
+
+Request:
+
+```http
+GET /gb-nr/service?identity=C12345&departureDate=2026-04-14 HTTP/1.1
+Host: data.rtt.io
+Authorization: Bearer eyJhbGciOi...<access-token>...xyz
+Accept: application/json
+```
+
+Representative response (`200`):
+
+```json
+{
+  "service": {
+    "scheduleMetadata": {
+      "identity": "C12345",
+      "departureDate": "2026-04-14",
+      "trainReportingIdentity": "1A23",
+      "operator": {
+        "name": "Avanti West Coast"
+      },
+      "inPassengerService": true
+    },
+    "origin": [
+      {
+        "location": {
+          "description": "London Euston"
+        },
+        "temporalData": {
+          "scheduleAdvertised": "2026-04-14T16:40:00+01:00"
+        }
+      }
+    ],
+    "destination": [
+      {
+        "location": {
+          "description": "Manchester Piccadilly"
+        }
+      }
+    ],
+    "reasons": [
+      {
+        "type": "DELAY",
+        "shortText": "Late inbound service"
+      }
+    ],
+    "locations": [
+      {
+        "location": {
+          "description": "Milton Keynes Central"
+        },
+        "temporalData": {
+          "scheduledCallType": "PUBLIC",
+          "displayAs": "CALL",
+          "arrival": {
+            "scheduleAdvertised": "2026-04-14T17:10:00+01:00",
+            "realtimeForecast": "2026-04-14T17:12:00+01:00"
+          },
+          "departure": {
+            "scheduleAdvertised": "2026-04-14T17:12:00+01:00",
+            "realtimeForecast": "2026-04-14T17:14:00+01:00"
+          }
+        },
+        "locationMetadata": {
+          "platform": {
+            "planned": "4",
+            "actual": "4"
+          },
+          "isRequestStop": false
+        },
+        "reasons": [
+          {
+            "type": "DELAY",
+            "shortText": "Waiting for path"
+          }
+        ],
+        "associatedServices": [
+          {
+            "associationData": {
+              "associationType": "JOIN_FROM",
+              "isPublic": true
+            },
+            "scheduleMetadata": {
+              "identity": "C67890",
+              "departureDate": "2026-04-14",
+              "trainReportingIdentity": "1B45",
+              "operator": {
+                "name": "London Northwestern Railway"
+              }
+            }
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+
+### 15.6 Stops catalog response
+
+Representative response (`200`):
+
+```json
+{
+  "stops": [
+    {
+      "shortCode": "EUS",
+      "description": "Euston"
+    },
+    {
+      "shortCode": "KGX",
+      "description": "Kings Cross"
+    }
+  ]
+}
+```
+
+Parsing rule:
+
+- Rows lacking `shortCode` or `description` are ignored.
+
